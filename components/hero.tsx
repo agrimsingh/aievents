@@ -21,8 +21,8 @@ export function Hero() {
               AI Events SG
             </h1>
             <p className="mt-1.5 text-[clamp(0.8125rem,1.4vw,0.9375rem)] leading-relaxed text-foreground-muted">
-              Hackathons, meetups &amp; hands-on sessions for Singapore&apos;s
-              AI community
+              Meetups, hackathons, and hands-on nights for people building with
+              AI in Singapore.
             </p>
           </div>
           <LabsLogoLink

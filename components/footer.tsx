@@ -19,7 +19,8 @@ export function Footer() {
               AI Events SG
             </p>
             <p className="mt-3 text-sm leading-[1.7] text-foreground-muted">
-              A community calendar for Singapore&apos;s AI builders.
+              A loose calendar for Singapore builders who mess with models,
+              APIs, and the messy stuff in between.
               <br />
               Built by{" "}
               <LabsLogoLink
@@ -34,17 +35,17 @@ export function Footer() {
               Contribute
             </span>
             <p className="max-w-[28ch] text-foreground-muted">
-              Want your event listed?{" "}
+              Want your event here?{" "}
               <span className="text-foreground">
-                Community submissions coming soon.
+                Submissions opening up later.
               </span>
             </p>
           </div>
         </div>
 
         <p className="mt-16 text-xs leading-relaxed text-foreground-muted/60">
-          Event details are synced from Luma. Always confirm times and venues on
-          the official listing before heading out.
+          Data comes from Luma pages we track. Confirm time and place on the
+          official listing before you leave the house.
         </p>
       </div>
     </footer>

@@ -32,23 +32,23 @@ export function EventFeed({ events }: Props) {
         </div>
       </div>
 
-      <main className="flex w-full min-w-0 flex-1 flex-col gap-16 pb-12 pt-12 sm:gap-24 sm:pt-16">
+      <div className="flex w-full min-w-0 flex-1 flex-col gap-16 pb-12 pt-12 sm:gap-24 sm:pt-16">
         {featured ? (
           <FeaturedEvent event={featured} />
         ) : (
           <div className="mx-auto flex max-w-sm flex-col items-center px-4 py-12 text-center">
             <p className="font-display text-xl text-foreground">
-              No upcoming events match
+              Nothing matches those filters
             </p>
             <p className="mt-3 text-sm leading-[1.7] text-foreground-muted">
-              Try adjusting filters or check back &mdash; we pull fresh data
-              from Luma every hour.
+              Loosen a filter or come back later. We refresh from Luma about
+              once an hour.
             </p>
           </div>
         )}
 
         {rest.length > 0 ? <EventList events={rest} /> : null}
-      </main>
+      </div>
     </>
   );
 }
