@@ -15,5 +15,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 - **aievents.sg**: Singapore-focused **AI community events** listing; curated, community-run feel; tied to **65labs.org**.
 - **65labs branding**: Prefer **`/65labs.png`** from `public` as the logo where used, linking to **https://65labs.org**.
+- **Source repo**: **https://github.com/agrimsingh/aievents** (default branch **`main`**).
+- **Hosting**: **Vercel**; install/build follow **`pnpm-lock.yaml`** when configuring the project.
+- **Stack**: **Next.js 16**, **Tailwind CSS v4**, **Bricolage Grotesque** + **Figtree**; listings use **ISR** with roughly **hourly** revalidation for Luma-backed data.
 - **Events pipeline**: Curated **Luma** URLs in **`data/events.ts`**; **`lib/luma.ts`** loads event details from each page via **JSON-LD Event** (and related fields) in the HTML.
 - **Roadmap note**: **Convex** for community submissions and an approval workflow was discussed as a later phase alongside curated Luma-sourced events.

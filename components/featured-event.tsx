@@ -19,8 +19,8 @@ export function FeaturedEvent({ event }: Props) {
   const { day, month } = formatDateParts(event.date);
 
   return (
-    <article className="animate-enter group delay-4">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-10">
+    <article className="animate-enter group w-full delay-4">
+      <div className="mx-auto w-full min-w-0 max-w-6xl px-4 sm:px-6 lg:px-10">
         <p className="mb-6 text-xs font-medium uppercase tracking-[0.18em] text-accent-secondary sm:mb-8">
           Next up
         </p>

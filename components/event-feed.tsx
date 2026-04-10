@@ -32,7 +32,7 @@ export function EventFeed({ events }: Props) {
         </div>
       </div>
 
-      <main className="flex flex-1 flex-col gap-16 pb-12 pt-12 sm:gap-24 sm:pt-16">
+      <main className="flex w-full min-w-0 flex-1 flex-col gap-16 pb-12 pt-12 sm:gap-24 sm:pt-16">
         {featured ? (
           <FeaturedEvent event={featured} />
         ) : (

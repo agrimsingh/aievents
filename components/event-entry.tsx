@@ -21,12 +21,12 @@ export function EventEntry({ event, className }: Props) {
   return (
     <article
       className={cn(
-        "group grid grid-cols-[3.25rem_1fr_auto] items-start gap-4 py-5 transition-[background-color,opacity] duration-200 ease-out sm:grid-cols-[3.25rem_5.5rem_1fr_auto] sm:gap-5",
+        "group grid w-full min-w-0 grid-cols-[3.25rem_minmax(0,1fr)_auto] items-center gap-4 py-5 transition-[background-color,opacity] duration-200 ease-out sm:grid-cols-[3.25rem_5.5rem_minmax(0,1fr)_auto] sm:gap-5",
         className,
       )}
     >
       {/* Date block — always visible, display font for scanability */}
-      <div className="flex flex-col items-center pt-0.5 text-center">
+      <div className="flex flex-col items-center text-center">
         <span className="font-display text-2xl font-semibold leading-none tabular-nums text-foreground">
           {day}
         </span>
@@ -77,7 +77,7 @@ export function EventEntry({ event, className }: Props) {
       </div>
 
       {/* CTA */}
-      <div className="flex shrink-0 items-start pt-1">
+      <div className="flex shrink-0 items-center">
         <Link
           href={event.lumaUrl}
           target="_blank"

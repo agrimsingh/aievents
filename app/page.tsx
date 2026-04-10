@@ -18,7 +18,7 @@ export default async function Home() {
           __html: JSON.stringify(jsonLd),
         }}
       />
-      <div className="flex min-h-full flex-col">
+      <div className="flex min-h-full w-full min-w-0 flex-col">
         <Hero />
         <EventFeed events={events} />
         <Footer />

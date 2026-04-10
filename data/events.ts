@@ -20,5 +20,7 @@ export const curatedLumaEvents: CuratedLumaEntry[] = [
   },
   {
     lumaUrl: "https://luma.com/bh5iqhnx",
+    type: "hackathon",
+    tags: ["Vercel"],
   },
 ];
