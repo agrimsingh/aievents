@@ -7,17 +7,17 @@ export const ORGANIZATION_URL = "https://65labs.org/" as const;
 
 /** WebSite / meta description — factual blurb for crawlers and AI summaries. */
 export const siteSummary =
-  "Singapore AI meetups, hackathons, and workshops with links straight to each organizer's page. The 65labs.org team maintains the list. We don't host events or sell tickets.";
+  "Singapore AI meetups, hackathons, and workshops with links to each organizer's listing. Run by 65labs on aievents.sg—a dedicated calendar we keep separate from 65labs.org. We are not the venue and we do not sell tickets.";
 
 export const siteIntroParagraphs: readonly ReactNode[] = [
   <>
     <strong className="font-semibold text-foreground">AI Events SG</strong>{" "}
     tracks AI events in Singapore: meetups, hackathons, workshops, the kind
-    of thing you show up to if you build. We are not the venue and we are not
-    the box office, just a list.
+    of thing you show up to if you build. We&apos;re not the venue or the box
+    office, just a list.
   </>,
   <>
-    The{" "}
+    We keep aievents.sg separate from{" "}
     <a
       href={ORGANIZATION_URL}
       target="_blank"
@@ -25,10 +25,12 @@ export const siteIntroParagraphs: readonly ReactNode[] = [
       className="font-medium text-accent underline-offset-4 transition-colors hover:text-accent-hover hover:underline"
     >
       65labs.org
-    </a>{" "}
-    crew keeps this going. We pull copy from public event pages (mostly Luma)
-    and refresh about once an hour. Before you travel, double-check time and
-    place on the host&apos;s page.
+    </a>
+    : that is our builder collective, events we run there, and the rest of how
+    we show the work. This page is a wider, curated index of public Singapore
+    AI listings. Details come from organizer pages (mostly Luma), refreshed
+    about once an hour. Before you travel, double-check time and place on the
+    host&apos;s page.
   </>,
 ];
 
@@ -50,7 +52,7 @@ export const faqItems: readonly FaqItem[] = [
     id: "who-runs",
     question: "Who runs AI Events SG?",
     answer:
-      "The 65labs.org team, as a side project for builders here. 65labs is its own editorial thing; this calendar is not tied to one venue or sponsor.",
+      "65labs. aievents.sg is a calendar we run on its own: curated public listings across Singapore's AI scene, separate from our main site at 65labs.org even though it is the same team. 65labs.org is home for the collective, events we run there, and the rest of our work; here we aggregate selected listings from the wider ecosystem. No single venue or sponsor pays to appear here.",
   },
   {
     id: "how-listed",
