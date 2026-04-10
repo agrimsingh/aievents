@@ -16,7 +16,7 @@ export function FeaturedEvent({ event }: Props) {
   const locationLine = event.location.isVirtual
     ? "Online"
     : [event.location.name, event.location.city].filter(Boolean).join(" · ");
-  const { day, month, weekday } = formatDateParts(event.date);
+  const { day, month } = formatDateParts(event.date);
 
   return (
     <article className="animate-enter group delay-4">
@@ -56,16 +56,13 @@ export function FeaturedEvent({ event }: Props) {
               {event.title}
             </h2>
 
-            <div className="mt-5 flex items-baseline gap-3">
-              <span className="font-display text-3xl font-semibold tabular-nums text-accent sm:text-4xl">
+            <div className="mt-5 flex items-center gap-2.5">
+              <span className="font-display text-3xl font-semibold leading-none tabular-nums text-accent sm:text-4xl">
                 {day}
               </span>
-              <div className="flex flex-col text-sm leading-tight text-foreground-muted">
-                <span className="font-medium uppercase tracking-wider text-accent">
-                  {month}
-                </span>
-                <span>{weekday}</span>
-              </div>
+              <span className="text-base font-medium uppercase leading-none tracking-wider text-accent sm:text-lg">
+                {month}
+              </span>
             </div>
 
             <p className="mt-1 text-sm text-foreground-muted">

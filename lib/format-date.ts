@@ -42,7 +42,6 @@ export function formatShortDate(iso: string): string {
 export function formatDateParts(iso: string): {
   day: string;
   month: string;
-  weekday: string;
 } {
   const d = new Date(iso);
   const day = new Intl.DateTimeFormat("en-SG", {
@@ -53,9 +52,5 @@ export function formatDateParts(iso: string): {
     timeZone: SG_TZ,
     month: "short",
   }).format(d);
-  const weekday = new Intl.DateTimeFormat("en-SG", {
-    timeZone: SG_TZ,
-    weekday: "short",
-  }).format(d);
-  return { day, month, weekday };
+  return { day, month };
 }
