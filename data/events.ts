@@ -18,4 +18,7 @@ export const curatedLumaEvents: CuratedLumaEntry[] = [
     type: "meetup",
     tags: ["Codex", "agents"],
   },
+  {
+    lumaUrl: "https://luma.com/bh5iqhnx",
+  },
 ];
