@@ -19,7 +19,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Add an event
 
-Edit [`data/events.ts`](data/events.ts): add a `{ lumaUrl, type?, tags? }` entry. Deploy or wait for the hourly revalidation.
+Edit [`data/events.ts`](data/events.ts): add a `{ sourceUrl, type?, tags? }` entry (Luma or any page with Event JSON-LD). Deploy or wait for the hourly revalidation.
 
 ## Deploy (Vercel)
 

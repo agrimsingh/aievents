@@ -6,6 +6,7 @@ import { formatDateParts } from "@/lib/format-date";
 import { EVENT_KIND_LABELS } from "@/lib/event-filters";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { eventListCtaLabel } from "@/lib/event-link";
 
 type Props = {
   event: EventRecord;
@@ -13,6 +14,7 @@ type Props = {
 };
 
 export function EventEntry({ event, className }: Props) {
+  const cta = eventListCtaLabel(event.sourceUrl);
   const locationLine = event.location.isVirtual
     ? "Online"
     : [event.location.name, event.location.city].filter(Boolean).join(" · ");
@@ -63,7 +65,7 @@ export function EventEntry({ event, className }: Props) {
         </div>
         <h3 className="font-display text-[1.05rem] font-semibold leading-snug sm:text-lg">
           <Link
-            href={event.lumaUrl}
+            href={event.sourceUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="transition-colors hover:text-accent"
@@ -79,12 +81,12 @@ export function EventEntry({ event, className }: Props) {
       {/* CTA */}
       <div className="flex shrink-0 items-center">
         <Link
-          href={event.lumaUrl}
+          href={event.sourceUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium text-foreground-muted shadow-[inset_0_0_0_1px_var(--muted)] transition-[color,box-shadow] duration-200 group-hover:text-accent group-hover:shadow-[inset_0_0_0_1px_var(--accent)]"
         >
-          Luma
+          {cta}
           <ArrowUpRight className="size-3.5" aria-hidden />
         </Link>
       </div>

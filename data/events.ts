@@ -1,26 +1,32 @@
 import type { EventKind } from "@/lib/types";
 
-/** Curated Luma URLs + optional overrides (type inferred if omitted). */
-export type CuratedLumaEntry = {
-  lumaUrl: string;
+/** Curated event page URLs (Luma or other hosts with Event JSON-LD). */
+export type CuratedEventEntry = {
+  sourceUrl: string;
   type?: EventKind;
   tags?: string[];
 };
 
-export const curatedLumaEvents: CuratedLumaEntry[] = [
+export const curatedEvents: CuratedEventEntry[] = [
   {
-    lumaUrl: "https://luma.com/srcfgry1",
+    sourceUrl: "https://luma.com/srcfgry1",
     type: "hackathon",
     tags: ["Grab", "65labs", "API"],
   },
   {
-    lumaUrl: "https://luma.com/fhdzsqfd",
+    sourceUrl: "https://luma.com/fhdzsqfd",
     type: "meetup",
     tags: ["Codex", "agents"],
   },
   {
-    lumaUrl: "https://luma.com/bh5iqhnx",
+    sourceUrl: "https://luma.com/bh5iqhnx",
     type: "hackathon",
     tags: ["Vercel"],
+  },
+  {
+    sourceUrl:
+      "https://singapore.aitinkerers.org/p/ai-tinkerers-singapore-the-agentic-future-dev-eng-workflows",
+    type: "meetup",
+    tags: ["AI Tinkerers", "agents"],
   },
 ];

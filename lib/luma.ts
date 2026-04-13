@@ -1,5 +1,6 @@
 import { cache } from "react";
-import { curatedLumaEvents, type CuratedLumaEntry } from "@/data/events";
+import { curatedEvents, type CuratedEventEntry } from "@/data/events";
+import { isLumaEventUrl } from "@/lib/event-link";
 import type { EventKind, EventRecord } from "@/lib/types";
 
 type PostalAddress = {
@@ -7,13 +8,15 @@ type PostalAddress = {
   addressLocality?: string;
 };
 
+type JsonLdImageObject = { url?: string };
+
 type SchemaEvent = {
   "@type"?: string;
   name?: string;
   description?: string;
   startDate?: string;
   endDate?: string;
-  image?: string | string[];
+  image?: string | JsonLdImageObject | Array<string | JsonLdImageObject>;
   location?: {
     name?: string;
     address?: string | PostalAddress;
@@ -33,8 +36,12 @@ function slugFromUrl(url: string): string {
 
 function pickImage(image: SchemaEvent["image"]): string | undefined {
   if (!image) return undefined;
-  if (Array.isArray(image)) return image[0];
-  return image;
+  const first = Array.isArray(image) ? image[0] : image;
+  if (typeof first === "string") return first;
+  if (first && typeof first === "object" && typeof first.url === "string") {
+    return first.url;
+  }
+  return undefined;
 }
 
 function isVirtualMode(mode?: string): boolean {
@@ -83,7 +90,15 @@ function inferKind(title: string, override?: EventKind): EventKind {
   return "other";
 }
 
-/** Hoisted: same pattern used for every Luma HTML parse (js-hoist-regexp). */
+function normalizeEventTitle(sourceUrl: string, rawName: string): string {
+  let title = rawName.trim();
+  if (isLumaEventUrl(sourceUrl)) {
+    title = title.replace(/\s*·\s*Luma\s*$/i, "").trim();
+  }
+  return title;
+}
+
+/** Hoisted: same pattern used for every event HTML parse (js-hoist-regexp). */
 const JSON_LD_SCRIPT_RE =
   /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
 
@@ -108,11 +123,11 @@ function extractJsonLdEvent(html: string): SchemaEvent | null {
   return null;
 }
 
-export const fetchLumaEvent = cache(
-  async (entry: CuratedLumaEntry): Promise<EventRecord | null> => {
-    const { lumaUrl, type: typeOverride, tags } = entry;
+export const fetchCuratedEvent = cache(
+  async (entry: CuratedEventEntry): Promise<EventRecord | null> => {
+    const { sourceUrl, type: typeOverride, tags } = entry;
     try {
-      const res = await fetch(lumaUrl, {
+      const res = await fetch(sourceUrl, {
         next: { revalidate: 3600 },
         headers: {
           "User-Agent":
@@ -121,23 +136,24 @@ export const fetchLumaEvent = cache(
         },
       });
       if (!res.ok) {
-        console.error(`Luma fetch failed ${res.status} for ${lumaUrl}`);
+        console.error(`Event fetch failed ${res.status} for ${sourceUrl}`);
         return null;
       }
       const html = await res.text();
       const ev = extractJsonLdEvent(html);
       if (!ev?.name || !ev.startDate) {
-        console.error(`No Event JSON-LD in ${lumaUrl}`);
+        console.error(`No Event JSON-LD in ${sourceUrl}`);
         return null;
       }
-      const slug = slugFromUrl(lumaUrl);
+      const slug = slugFromUrl(sourceUrl);
       const addr = parseAddress(ev.location);
       const virtual = isVirtualMode(ev.eventAttendanceMode);
       const cover = pickImage(ev.image);
+      const title = normalizeEventTitle(sourceUrl, ev.name);
 
       return {
         slug,
-        title: ev.name.replace(/\s*·\s*Luma\s*$/i, "").trim(),
+        title,
         description: ev.description ?? "",
         date: ev.startDate,
         endDate: ev.endDate,
@@ -147,13 +163,13 @@ export const fetchLumaEvent = cache(
           city: addr.city,
           isVirtual: virtual,
         },
-        type: inferKind(ev.name, typeOverride),
+        type: inferKind(title, typeOverride),
         coverImage: cover,
-        lumaUrl,
+        sourceUrl,
         tags,
       };
     } catch (err) {
-      console.error(`Luma fetch error for ${lumaUrl}`, err);
+      console.error(`Event fetch error for ${sourceUrl}`, err);
       return null;
     }
   },
@@ -162,7 +178,7 @@ export const fetchLumaEvent = cache(
 /** Per-request dedupe if multiple server components need the list (server-cache-react). */
 export const getAllEvents = cache(async (): Promise<EventRecord[]> => {
   const results = await Promise.all(
-    curatedLumaEvents.map((e) => fetchLumaEvent(e)),
+    curatedEvents.map((e) => fetchCuratedEvent(e)),
   );
   return results.filter((r): r is EventRecord => r !== null).sort((a, b) => {
     return new Date(a.date).getTime() - new Date(b.date).getTime();

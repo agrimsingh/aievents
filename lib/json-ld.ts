@@ -35,12 +35,12 @@ function eventToJsonLd(e: EventRecord) {
 
   return {
     "@type": "Event" as const,
-    "@id": e.lumaUrl,
+    "@id": e.sourceUrl,
     name: e.title,
     description: e.description,
     startDate: e.date,
     endDate: e.endDate,
-    url: e.lumaUrl,
+    url: e.sourceUrl,
     image: e.coverImage,
     eventAttendanceMode: e.location.isVirtual
       ? "https://schema.org/OnlineEventAttendanceMode"
@@ -84,7 +84,7 @@ export function buildHomeJsonLd(events: EventRecord[]) {
       "@type": "ListItem" as const,
       position: i + 1,
       name: e.title,
-      url: e.lumaUrl,
+      url: e.sourceUrl,
     })),
   };
 

@@ -6,12 +6,14 @@ import { formatEventRange, formatDateParts } from "@/lib/format-date";
 import { EVENT_KIND_LABELS } from "@/lib/event-filters";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { eventFeaturedCtaLabel } from "@/lib/event-link";
 
 type Props = {
   event: EventRecord;
 };
 
 export function FeaturedEvent({ event }: Props) {
+  const featuredCta = eventFeaturedCtaLabel(event.sourceUrl);
   const blurb = event.description.replace(/\s+/g, " ").trim();
   const locationLine = event.location.isVirtual
     ? "Online"
@@ -78,12 +80,12 @@ export function FeaturedEvent({ event }: Props) {
             <div className="mt-8">
               <Button asChild size="lg">
                 <Link
-                  href={event.lumaUrl}
+                  href={event.sourceUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2"
                 >
-                  View on Luma
+                  {featuredCta}
                   <ArrowUpRight className="size-4" aria-hidden />
                 </Link>
               </Button>

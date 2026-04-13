@@ -20,7 +20,8 @@ export type EventRecord = {
   };
   type: EventKind;
   coverImage?: string;
-  lumaUrl: string;
+  /** Canonical event page (Luma or any host with Event JSON-LD). */
+  sourceUrl: string;
   tags?: string[];
 };
 

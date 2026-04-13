@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
       },
       { protocol: "https", hostname: "og.luma.com", pathname: "/**" },
       { protocol: "https", hostname: "cdn.lu.ma", pathname: "/**" },
+      {
+        protocol: "https",
+        hostname: "sloppy-joe-app.imgix.net",
+        pathname: "/**",
+      },
     ],
   },
 };

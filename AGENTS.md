@@ -18,5 +18,5 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **Source repo**: **https://github.com/agrimsingh/aievents** (default branch **`main`**).
 - **Hosting**: **Vercel**; install/build follow **`pnpm-lock.yaml`** when configuring the project.
 - **Stack**: **Next.js 16**, **Tailwind CSS v4**, **Bricolage Grotesque** + **Figtree**; listings use **ISR** with roughly **hourly** revalidation for Luma-backed data.
-- **Events pipeline**: Curated **Luma** URLs in **`data/events.ts`**; **`lib/luma.ts`** loads event details from each page via **JSON-LD Event** (and related fields) in the HTML.
+- **Events pipeline**: Curated **`sourceUrl`** entries in **`data/events.ts`** (Luma or other hosts); **`lib/luma.ts`** fetches each page and parses **JSON-LD `Event` / `SocialEvent`** for title, dates, location, image, etc.
 - **Roadmap note**: **Convex** for community submissions and an approval workflow was discussed as a later phase alongside curated Luma-sourced events.
