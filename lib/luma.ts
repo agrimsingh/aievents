@@ -98,6 +98,24 @@ function normalizeEventTitle(sourceUrl: string, rawName: string): string {
   return title;
 }
 
+function recordFromScrapeFallback(entry: CuratedEventEntry): EventRecord {
+  const fb = entry.scrapeFallback!;
+  const { sourceUrl, type: typeOverride, tags } = entry;
+  const title = normalizeEventTitle(sourceUrl, fb.title);
+  return {
+    slug: slugFromUrl(sourceUrl),
+    title,
+    description: fb.description,
+    date: fb.date,
+    endDate: fb.endDate,
+    location: fb.location,
+    type: inferKind(title, typeOverride),
+    coverImage: fb.coverImage,
+    sourceUrl,
+    tags,
+  };
+}
+
 /** Hoisted: same pattern used for every event HTML parse (js-hoist-regexp). */
 const JSON_LD_SCRIPT_RE =
   /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
@@ -130,20 +148,23 @@ export const fetchCuratedEvent = cache(
       const res = await fetch(sourceUrl, {
         next: { revalidate: 3600 },
         headers: {
+          // Browser-like UA: some hosts return a bot interstitial to datacenter fetches.
           "User-Agent":
-            "AIEventsSG/1.0 (+https://aievents.sg; event aggregator)",
-          Accept: "text/html,application/xhtml+xml",
+            "Mozilla/5.0 (compatible; AIEventsSG/1.0; +https://aievents.sg) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+          Accept:
+            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "Accept-Language": "en-SG,en;q=0.9",
         },
       });
       if (!res.ok) {
         console.error(`Event fetch failed ${res.status} for ${sourceUrl}`);
-        return null;
+        return entry.scrapeFallback ? recordFromScrapeFallback(entry) : null;
       }
       const html = await res.text();
       const ev = extractJsonLdEvent(html);
       if (!ev?.name || !ev.startDate) {
         console.error(`No Event JSON-LD in ${sourceUrl}`);
-        return null;
+        return entry.scrapeFallback ? recordFromScrapeFallback(entry) : null;
       }
       const slug = slugFromUrl(sourceUrl);
       const addr = parseAddress(ev.location);
@@ -170,7 +191,7 @@ export const fetchCuratedEvent = cache(
       };
     } catch (err) {
       console.error(`Event fetch error for ${sourceUrl}`, err);
-      return null;
+      return entry.scrapeFallback ? recordFromScrapeFallback(entry) : null;
     }
   },
 );
