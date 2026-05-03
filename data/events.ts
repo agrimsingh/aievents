@@ -17,6 +17,60 @@ export type CuratedEventEntry = {
 
 export const curatedEvents: CuratedEventEntry[] = [
   {
+    sourceUrl: "https://luma.com/zprbhtzy",
+    type: "hackathon",
+    tags: ["Codex", "GPT 5.5", "GPT Image 2"],
+  },
+  {
+    sourceUrl: "https://luma.com/bw3rpffq",
+    type: "meetup",
+    tags: ["Codex", "design", "frontend"],
+  },
+  {
+    sourceUrl: "https://luma.com/tu1yajd5",
+    type: "demo-day",
+    tags: ["Codex", "GPT 5.5", "Lorong AI"],
+  },
+  {
+    sourceUrl: "https://luma.com/pbk5bb32",
+    type: "meetup",
+    tags: ["Codex", "computer use", "browser use", "Lorong AI"],
+    scrapeFallback: {
+      title: "Codex Hack Night (Computer Use) @ Lorong AI",
+      description:
+        "Together with our friends at Lorong AI, come hang out with Gabriel and YQ to explore Computer & Browser Use in Codex. Bring something you're working on, start a new idea, or pair up with someone in the room.",
+      date: "2026-05-11T10:00:00.000Z",
+      endDate: "2026-05-11T13:00:00.000Z",
+      location: {
+        name: "Queenstown",
+        address: "Register to See Address",
+        city: "Singapore",
+        isVirtual: false,
+      },
+      coverImage:
+        "https://images.lumacdn.com/event-covers/bd/d4cc74b7-3430-4737-bb38-4fb9f74d61c6.png",
+    },
+  },
+  {
+    sourceUrl: "https://luma.com/4v97ndhx",
+    type: "meetup",
+    tags: ["Codex", "Lorong AI"],
+    scrapeFallback: {
+      title: "Codex Hack Night @ Lorong AI",
+      description:
+        "Together with our friends at Lorong AI, come hang out to explore Codex. Bring something you're working on, start a new idea, or pair up with someone in the room.",
+      date: "2026-05-13T10:00:00.000Z",
+      endDate: "2026-05-13T13:00:00.000Z",
+      location: {
+        name: "Singapore",
+        city: "Singapore",
+        isVirtual: false,
+      },
+      coverImage:
+        "https://images.lumacdn.com/event-covers/bd/d4cc74b7-3430-4737-bb38-4fb9f74d61c6.png",
+    },
+  },
+  {
     sourceUrl: "https://luma.com/srcfgry1",
     type: "hackathon",
     tags: ["Grab", "65labs", "API"],
