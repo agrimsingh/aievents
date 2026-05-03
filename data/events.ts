@@ -88,6 +88,41 @@ export const curatedEvents: CuratedEventEntry[] = [
 
   // Road to AI Engineer Singapore (see luma.com/1eofvp02 for full list)
   {
+    sourceUrl: "https://luma.com/3binn6ce",
+    type: "meetup",
+    tags: ["Road to AIE", "AI Engineer"],
+  },
+  {
+    sourceUrl: "https://luma.com/6frwv8k9",
+    type: "demo-day",
+    tags: ["Road to AIE", "Zo Computer", "personal agents"],
+    scrapeFallback: {
+      title: "Personal Agents Demo Night",
+      description:
+        "The Zo Computer team is heading to Singapore to share more about personal agents and hear how the community is building theirs. Expect demos and time with local builders.",
+      date: "2026-05-12T10:30:00.000Z",
+      endDate: "2026-05-12T12:30:00.000Z",
+      location: {
+        name: "Lorong AI @ One-North",
+        address: "69 Ayer Rajah Cres., Singapore 139961",
+        city: "Singapore",
+        isVirtual: false,
+      },
+      coverImage:
+        "https://images.lumacdn.com/event-covers/cy/f2e44826-0dc9-459f-9b40-c297838f99e9.png",
+    },
+  },
+  {
+    sourceUrl: "https://luma.com/9guwajbq",
+    type: "meetup",
+    tags: ["Road to AIE", "Convex", "real-time sync"],
+  },
+  {
+    sourceUrl: "https://luma.com/r0jxt5da",
+    type: "meetup",
+    tags: ["Road to AIE", "Daytona", "Zo Computer"],
+  },
+  {
     sourceUrl: "https://luma.com/00hm86ph",
     type: "meetup",
     tags: ["Road to AIE", "OpenAI"],
