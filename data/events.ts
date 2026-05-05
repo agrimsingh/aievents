@@ -52,6 +52,11 @@ export const curatedEvents: CuratedEventEntry[] = [
     },
   },
   {
+    sourceUrl: "https://luma.com/b0s6uso8",
+    type: "workshop",
+    tags: ["Codex", "OpenAI", "LinkedIn"],
+  },
+  {
     sourceUrl: "https://luma.com/4v97ndhx",
     type: "meetup",
     tags: ["Codex", "Lorong AI"],
