@@ -128,6 +128,11 @@ export const curatedEvents: CuratedEventEntry[] = [
     tags: ["Road to AIE", "Daytona", "Zo Computer"],
   },
   {
+    sourceUrl: "https://luma.com/qatufzkn",
+    type: "workshop",
+    tags: ["Road to AIE", "Zo Computer", "MiniMax"],
+  },
+  {
     sourceUrl: "https://luma.com/clawconsingapore",
     type: "meetup",
     tags: ["Road to AIE", "ClawCon", "personal AI"],
@@ -146,6 +151,26 @@ export const curatedEvents: CuratedEventEntry[] = [
     sourceUrl: "https://luma.com/7die021j",
     type: "meetup",
     tags: ["Road to AIE", "Magic Patterns"],
+  },
+  {
+    sourceUrl: "https://luma.com/4hx7p0vs",
+    type: "hackathon",
+    tags: ["Road to AIE", "OpenAI", "Team Attention"],
+    scrapeFallback: {
+      title: "Ralphthon @SG sponsored by OpenAI",
+      description:
+        "Ralphthon @Singapore. Co-hosted by Team Attention, Hashed & Network School, with 65labs, AER Labs, Superteam SG, and Meteora.",
+      date: "2026-05-17T01:00:00.000Z",
+      endDate: "2026-05-17T12:00:00.000Z",
+      location: {
+        name: "Meteora Office",
+        address: "Suntec City, 3 Temasek Blvd, Singapore 038983",
+        city: "Singapore",
+        isVirtual: false,
+      },
+      coverImage:
+        "https://images.lumacdn.com/uploads/tm/39af141f-a3bd-4b76-9cae-28fe67c5bada.png",
+    },
   },
   {
     sourceUrl: "https://luma.com/w1gfp1g3",
