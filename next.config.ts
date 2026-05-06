@@ -15,6 +15,16 @@ const nextConfig: NextConfig = {
         hostname: "sloppy-joe-app.imgix.net",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "secure-content.meetupstatic.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "secure.meetupstatic.com",
+        pathname: "/**",
+      },
     ],
   },
 };

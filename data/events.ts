@@ -76,6 +76,12 @@ export const curatedEvents: CuratedEventEntry[] = [
     },
   },
   {
+    sourceUrl:
+      "https://www.meetup.com/machine-learning-singapore/events/314629150/",
+    type: "meetup",
+    tags: ["Road to AIE", "Google DeepMind", "Gemini"],
+  },
+  {
     sourceUrl: "https://luma.com/srcfgry1",
     type: "hackathon",
     tags: ["Grab", "65labs", "API"],
@@ -120,6 +126,26 @@ export const curatedEvents: CuratedEventEntry[] = [
       },
       coverImage:
         "https://images.lumacdn.com/event-covers/cy/f2e44826-0dc9-459f-9b40-c297838f99e9.png",
+    },
+  },
+  {
+    sourceUrl: "https://luma.com/pd45aa6n",
+    type: "meetup",
+    tags: ["Lightsprint", "cloud agents", "YC"],
+    scrapeFallback: {
+      title:
+        "Agents Amplified: Multiply Your Team with Cloud Agents - Lightsprint",
+      description:
+        "Lightsprint (YC P26) is building the software factory for the AI era, where PMs, designers, and engineers collaborate with cloud agents to plan visually, preview changes live, and ship production-ready code.",
+      date: "2026-05-12T18:00:00.000+08:00",
+      endDate: "2026-05-12T21:00:00.000+08:00",
+      location: {
+        name: "Singapore",
+        city: "Singapore",
+        isVirtual: false,
+      },
+      coverImage:
+        "https://images.lumacdn.com/cdn-cgi/image/format=auto,fit=cover,dpr=1,anim=false,background=white,quality=75,width=1920,height=1920/gallery-images/iw/6d364f57-87f8-420c-94fa-371a2b1369df.png",
     },
   },
   {
