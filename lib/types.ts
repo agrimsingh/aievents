@@ -6,6 +6,12 @@ export type EventKind =
   | "demo-day"
   | "other";
 
+export type EventHost = {
+  name: string;
+  avatar?: string;
+  url?: string;
+};
+
 export type EventRecord = {
   slug: string;
   title: string;
@@ -23,6 +29,7 @@ export type EventRecord = {
   /** Canonical event page (Luma or any host with Event JSON-LD). */
   sourceUrl: string;
   tags?: string[];
+  hosts?: EventHost[];
 };
 
 export type DateFilter = "upcoming" | "week" | "month";

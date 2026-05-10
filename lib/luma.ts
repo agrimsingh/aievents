@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { curatedEvents, type CuratedEventEntry } from "@/data/events";
 import { isLumaEventUrl } from "@/lib/event-link";
-import type { EventKind, EventRecord } from "@/lib/types";
+import type { EventHost, EventKind, EventRecord } from "@/lib/types";
 
 type PostalAddress = {
   streetAddress?: string;
@@ -9,6 +9,17 @@ type PostalAddress = {
 };
 
 type JsonLdImageObject = { url?: string };
+type JsonLdOrganizer =
+  | {
+      name?: string;
+      url?: string;
+      image?: string | JsonLdImageObject;
+    }
+  | Array<{
+      name?: string;
+      url?: string;
+      image?: string | JsonLdImageObject;
+    }>;
 
 type SchemaEvent = {
   "@type"?: string;
@@ -22,6 +33,7 @@ type SchemaEvent = {
     address?: string | PostalAddress;
   };
   eventAttendanceMode?: string;
+  organizer?: JsonLdOrganizer;
 };
 
 function slugFromUrl(url: string): string {
@@ -51,6 +63,26 @@ function isVirtualMode(mode?: string): boolean {
     mode.includes("online") ||
     mode.includes("Virtual")
   );
+}
+
+function pickHosts(organizer: SchemaEvent["organizer"]): EventHost[] {
+  if (!organizer) return [];
+  const organizers = Array.isArray(organizer) ? organizer : [organizer];
+  const seen = new Set<string>();
+  return organizers
+    .map((org) => {
+      if (!org.name) return null;
+      const key = org.name.trim().toLowerCase();
+      if (seen.has(key)) return null;
+      seen.add(key);
+      const avatar = pickImage(org.image);
+      return {
+        name: org.name,
+        ...(avatar ? { avatar } : {}),
+        ...(org.url ? { url: org.url } : {}),
+      };
+    })
+    .filter((host): host is EventHost => host !== null);
 }
 
 function parseAddress(
@@ -171,6 +203,7 @@ export const fetchCuratedEvent = cache(
       const virtual = isVirtualMode(ev.eventAttendanceMode);
       const cover = pickImage(ev.image);
       const title = normalizeEventTitle(sourceUrl, ev.name);
+      const hosts = pickHosts(ev.organizer);
 
       return {
         slug,
@@ -188,6 +221,7 @@ export const fetchCuratedEvent = cache(
         coverImage: cover,
         sourceUrl,
         tags,
+        hosts,
       };
     } catch (err) {
       console.error(`Event fetch error for ${sourceUrl}`, err);
