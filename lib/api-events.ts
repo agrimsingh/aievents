@@ -4,6 +4,19 @@ import type { EventKind, EventRecord } from "@/lib/types";
 const API_VERSION = "1";
 const SITE_SOURCE = "aievents.sg";
 const SG_TZ = "Asia/Singapore";
+const API_SORT = {
+  field: "startAt",
+  direction: "asc",
+} as const;
+const API_PAGINATION = {
+  mode: "none",
+  paginated: false,
+} as const;
+const API_SYNC = {
+  mode: "complete_snapshot",
+  removalPolicy: "missing_ids_are_removed",
+  tombstones: false,
+} as const;
 
 type EventPlatform = "Luma" | "Meetup" | "Other";
 type LocationVisibility =
@@ -12,6 +25,7 @@ type LocationVisibility =
   | "virtual"
   | "unknown";
 type EventStatusFilter = "upcoming" | "past" | "all";
+type EventPublicationStatus = "published" | "cancelled" | "removed";
 
 export type EventApiItem = {
   id: string;
@@ -33,7 +47,7 @@ export type EventApiItem = {
   description: string;
   url: string;
   platform: EventPlatform;
-  status: "published";
+  status: EventPublicationStatus;
   tags: string[];
   updatedAt: string;
 };
@@ -44,6 +58,9 @@ export type EventApiResponse = {
   timezone: typeof SG_TZ;
   updatedAt: string;
   count: number;
+  sort: typeof API_SORT;
+  pagination: typeof API_PAGINATION;
+  sync: typeof API_SYNC;
   filters: {
     status: EventStatusFilter;
     type: string | null;
@@ -68,7 +85,8 @@ export function buildEventsApiResponse(
     .filter((event) => matchesPlatform(event, filters.platform))
     .filter((event) => matchesTag(event, filters.tag))
     .filter((event) => matchesQuery(event, filters.q))
-    .filter((event) => matchesDateRange(event, filters.from, filters.to));
+    .filter((event) => matchesDateRange(event, filters.from, filters.to))
+    .sort(compareEventsByStartAt);
 
   return {
     version: API_VERSION,
@@ -76,12 +94,17 @@ export function buildEventsApiResponse(
     timezone: SG_TZ,
     updatedAt,
     count: filtered.length,
+    sort: API_SORT,
+    pagination: API_PAGINATION,
+    sync: API_SYNC,
     filters,
     events: filtered.map((event) => toApiEvent(event, updatedAt)),
   };
 }
 
-function parseFilters(searchParams: URLSearchParams): EventApiResponse["filters"] {
+function parseFilters(
+  searchParams: URLSearchParams,
+): EventApiResponse["filters"] {
   const rawStatus = searchParams.get("status")?.toLowerCase();
   const status: EventStatusFilter =
     rawStatus === "past" || rawStatus === "all" ? rawStatus : "upcoming";
@@ -132,6 +155,18 @@ function toApiEvent(event: EventRecord, updatedAt: string): EventApiItem {
 function toIsoString(value: string): string {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? value : date.toISOString();
+}
+
+function compareEventsByStartAt(a: EventRecord, b: EventRecord): number {
+  const startDiff = getEventStartTime(a) - getEventStartTime(b);
+  if (startDiff !== 0) return startDiff;
+
+  return a.title.localeCompare(b.title) || a.sourceUrl.localeCompare(b.sourceUrl);
+}
+
+function getEventStartTime(event: EventRecord): number {
+  const startTime = new Date(event.date).getTime();
+  return Number.isNaN(startTime) ? Number.POSITIVE_INFINITY : startTime;
 }
 
 function inferPlatform(sourceUrl: string): EventPlatform {
@@ -211,7 +246,9 @@ function matchesPlatform(event: EventRecord, platform: string | null): boolean {
 function matchesTag(event: EventRecord, tag: string | null): boolean {
   if (!tag) return true;
   const normalized = tag.toLowerCase();
-  return (event.tags ?? []).some((eventTag) => eventTag.toLowerCase() === normalized);
+  return (event.tags ?? []).some(
+    (eventTag) => eventTag.toLowerCase() === normalized,
+  );
 }
 
 function matchesQuery(event: EventRecord, q: string | null): boolean {
