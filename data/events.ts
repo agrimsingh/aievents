@@ -129,6 +129,11 @@ export const curatedEvents: CuratedEventEntry[] = [
     },
   },
   {
+    sourceUrl: "https://luma.com/s5gccok7",
+    type: "meetup",
+    tags: ["Road to AIE", "AI Tinkerers", "GFTN", "Tencent Cloud", "agents"],
+  },
+  {
     sourceUrl: "https://luma.com/pd45aa6n",
     type: "meetup",
     tags: ["Lightsprint", "cloud agents", "YC"],
