@@ -184,6 +184,11 @@ export const curatedEvents: CuratedEventEntry[] = [
     tags: ["Road to AIE", "ClawCon", "personal AI"],
   },
   {
+    sourceUrl: "https://luma.com/u7n61ah6",
+    type: "meetup",
+    tags: ["AI Engineer", "Project 6", "Superteam SG", "Petani"],
+  },
+  {
     sourceUrl: "https://luma.com/2lpf1ek6",
     type: "meetup",
     tags: ["AI Engineer", "Provena", "training data"],
