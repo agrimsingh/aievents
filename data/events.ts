@@ -274,6 +274,11 @@ export const curatedEvents: CuratedEventEntry[] = [
     },
   },
   {
+    sourceUrl: "https://luma.com/8scaib4z",
+    type: "meetup",
+    tags: ["PyTorch", "Red Hat", "open source AI", "vLLM"],
+  },
+  {
     sourceUrl: "https://luma.com/4ogc0024",
     type: "meetup",
     tags: ["Road to AIE", "Exa"],
