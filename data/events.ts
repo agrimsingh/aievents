@@ -164,6 +164,11 @@ export const curatedEvents: CuratedEventEntry[] = [
     tags: ["Road to AIE", "Daytona", "Zo Computer"],
   },
   {
+    sourceUrl: "https://luma.com/7a7hgih9",
+    type: "demo-day",
+    tags: ["Road to AIE", "Carousell", "builders", "demos"],
+  },
+  {
     sourceUrl: "https://luma.com/d3uxm5np",
     type: "meetup",
     tags: ["AI Engineer", "robotics", "Bifrost AI"],
