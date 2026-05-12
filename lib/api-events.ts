@@ -18,7 +18,7 @@ const API_SYNC = {
   tombstones: false,
 } as const;
 
-type EventPlatform = "Luma" | "Meetup" | "Other";
+type EventPlatform = "Luma" | "Meetup" | "GrowthX" | "Other";
 type LocationVisibility =
   | "public"
   | "registration_required"
@@ -175,6 +175,9 @@ function inferPlatform(sourceUrl: string): EventPlatform {
     if (host === "luma.com" || host.endsWith(".luma.com")) return "Luma";
     if (host === "lu.ma" || host.endsWith(".lu.ma")) return "Luma";
     if (host === "meetup.com" || host.endsWith(".meetup.com")) return "Meetup";
+    if (host === "growthx.club" || host.endsWith(".growthx.club")) {
+      return "GrowthX";
+    }
   } catch {
     return "Other";
   }
@@ -205,10 +208,13 @@ function inferLocationVisibility(event: EventRecord): LocationVisibility {
 
 function isRegistrationRequired(event: EventRecord): boolean {
   const { name, address } = event.location;
+  const platform = inferPlatform(event.sourceUrl);
   return (
     isRegistrationRequiredLocation(name) ||
     isRegistrationRequiredLocation(address) ||
-    (inferPlatform(event.sourceUrl) === "Luma" && name === "Singapore" && !address)
+    ((platform === "Luma" || platform === "GrowthX") &&
+      name === "Singapore" &&
+      !address)
   );
 }
 

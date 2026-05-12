@@ -8,33 +8,29 @@ type PostalAddress = {
   addressLocality?: string;
 };
 
+type JsonLdImage =
+  | string
+  | JsonLdImageObject
+  | Array<string | JsonLdImageObject>;
 type JsonLdImageObject = { url?: string };
-type JsonLdOrganizer =
-  | {
-      name?: string;
-      url?: string;
-      image?: string | JsonLdImageObject;
-    }
-  | Array<{
-      name?: string;
-      url?: string;
-      image?: string | JsonLdImageObject;
-    }>;
-
-type SchemaEvent = {
-  "@type"?: string;
+type JsonLdNode = {
+  "@graph"?: JsonLdNode[];
+  "@id"?: string;
+  "@type"?: string | string[];
   name?: string;
+  url?: string;
+  image?: JsonLdImage;
+  logo?: string | JsonLdImageObject;
+  address?: string | PostalAddress;
   description?: string;
   startDate?: string;
   endDate?: string;
-  image?: string | JsonLdImageObject | Array<string | JsonLdImageObject>;
-  location?: {
-    name?: string;
-    address?: string | PostalAddress;
-  };
+  location?: JsonLdNode;
   eventAttendanceMode?: string;
-  organizer?: JsonLdOrganizer;
+  organizer?: JsonLdNode | JsonLdNode[];
 };
+type JsonLdOrganizer = JsonLdNode | JsonLdNode[];
+type SchemaEvent = JsonLdNode;
 
 function slugFromUrl(url: string): string {
   try {
@@ -46,7 +42,7 @@ function slugFromUrl(url: string): string {
   }
 }
 
-function pickImage(image: SchemaEvent["image"]): string | undefined {
+function pickImage(image: JsonLdImage | undefined): string | undefined {
   if (!image) return undefined;
   const first = Array.isArray(image) ? image[0] : image;
   if (typeof first === "string") return first;
@@ -75,7 +71,7 @@ function pickHosts(organizer: SchemaEvent["organizer"]): EventHost[] {
       const key = org.name.trim().toLowerCase();
       if (seen.has(key)) return null;
       seen.add(key);
-      const avatar = pickImage(org.image);
+      const avatar = pickImage(org.image ?? org.logo);
       return {
         name: org.name,
         ...(avatar ? { avatar } : {}),
@@ -127,6 +123,9 @@ function normalizeEventTitle(sourceUrl: string, rawName: string): string {
   if (isLumaEventUrl(sourceUrl)) {
     title = title.replace(/\s*·\s*Luma\s*$/i, "").trim();
   }
+  if (isGrowthXEventUrl(sourceUrl)) {
+    title = title.replace(/\s*\|\s*GrowthX Events\s*$/i, "").trim();
+  }
   return title;
 }
 
@@ -159,11 +158,10 @@ function extractJsonLdEvent(html: string): SchemaEvent | null {
     const raw = m[1]?.trim();
     if (!raw) continue;
     try {
-      const data = JSON.parse(raw) as SchemaEvent | SchemaEvent[];
-      const items = Array.isArray(data) ? data : [data];
-      for (const item of items) {
-        if (item["@type"] === "Event" || item["@type"] === "SocialEvent") {
-          return item;
+      const nodes = collectJsonLdNodes(JSON.parse(raw));
+      for (const node of nodes) {
+        if (isJsonLdEvent(node)) {
+          return resolveJsonLdReferences(node, nodes);
         }
       }
     } catch {
@@ -171,6 +169,75 @@ function extractJsonLdEvent(html: string): SchemaEvent | null {
     }
   }
   return null;
+}
+
+function collectJsonLdNodes(data: unknown): JsonLdNode[] {
+  const items = Array.isArray(data) ? data : [data];
+  return items.flatMap((item) => {
+    if (!isJsonLdNode(item)) return [];
+    return [
+      item,
+      ...(Array.isArray(item["@graph"])
+        ? item["@graph"].filter(isJsonLdNode)
+        : []),
+    ];
+  });
+}
+
+function isJsonLdNode(value: unknown): value is JsonLdNode {
+  return typeof value === "object" && value !== null;
+}
+
+function isJsonLdEvent(node: JsonLdNode): boolean {
+  const types = Array.isArray(node["@type"]) ? node["@type"] : [node["@type"]];
+  return types.includes("Event") || types.includes("SocialEvent");
+}
+
+function resolveJsonLdReferences(
+  event: SchemaEvent,
+  nodes: JsonLdNode[],
+): SchemaEvent {
+  const nodesById = new Map(
+    nodes
+      .filter((node): node is JsonLdNode & { "@id": string } => !!node["@id"])
+      .map((node) => [node["@id"], node]),
+  );
+
+  return {
+    ...event,
+    location: resolveJsonLdReference(event.location, nodesById),
+    organizer: resolveJsonLdOrganizer(event.organizer, nodesById),
+  };
+}
+
+function resolveJsonLdReference(
+  node: JsonLdNode | undefined,
+  nodesById: Map<string, JsonLdNode>,
+): JsonLdNode | undefined {
+  if (!node?.["@id"]) return node;
+  const resolved = nodesById.get(node["@id"]);
+  if (!resolved || resolved === node) return node;
+  return { ...resolved, ...node };
+}
+
+function resolveJsonLdOrganizer(
+  organizer: JsonLdOrganizer | undefined,
+  nodesById: Map<string, JsonLdNode>,
+): JsonLdOrganizer | undefined {
+  if (!organizer) return undefined;
+  if (Array.isArray(organizer)) {
+    return organizer.map((org) => resolveJsonLdReference(org, nodesById) ?? org);
+  }
+  return resolveJsonLdReference(organizer, nodesById);
+}
+
+function isGrowthXEventUrl(sourceUrl: string): boolean {
+  try {
+    const host = new URL(sourceUrl).hostname.toLowerCase();
+    return host === "growthx.club" || host.endsWith(".growthx.club");
+  } catch {
+    return false;
+  }
 }
 
 export const fetchCuratedEvent = cache(

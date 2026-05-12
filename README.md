@@ -31,7 +31,7 @@ Query parameters:
 | --- | --- | --- |
 | `status` | `upcoming` | `upcoming`, `past`, `all` |
 | `type` | none | Event kind id or label, e.g. `meetup`, `hackathon`, `Demo Day` |
-| `platform` | none | `luma`, `meetup`, `other` |
+| `platform` | none | `luma`, `meetup`, `growthx`, `other` |
 | `tag` | none | Exact tag match, case-insensitive |
 | `q` | none | Case-insensitive text search across title, description, location, tags, hosts, and URL |
 | `from` | none | ISO timestamp or `YYYY-MM-DD` in Singapore time |

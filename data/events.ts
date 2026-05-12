@@ -214,6 +214,11 @@ export const curatedEvents: CuratedEventEntry[] = [
     tags: ["Road to AIE", "Magic Patterns"],
   },
   {
+    sourceUrl: "https://growthx.club/events/69fc17922b922a1f1f872774",
+    type: "meetup",
+    tags: ["AI Engineer", "GrowthX", "AI builders"],
+  },
+  {
     sourceUrl: "https://luma.com/4hx7p0vs",
     type: "hackathon",
     tags: ["Road to AIE", "OpenAI", "Team Attention"],

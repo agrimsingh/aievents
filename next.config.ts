@@ -25,6 +25,11 @@ const nextConfig: NextConfig = {
         hostname: "secure.meetupstatic.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "public-cdn.growthx.club",
+        pathname: "/**",
+      },
     ],
   },
 };
