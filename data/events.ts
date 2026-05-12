@@ -214,6 +214,11 @@ export const curatedEvents: CuratedEventEntry[] = [
     tags: ["AI Engineer", "Featherless", "after party"],
   },
   {
+    sourceUrl: "https://luma.com/s8hf4vsm",
+    type: "meetup",
+    tags: ["AI Engineer", "after party", "Capitol Theatre"],
+  },
+  {
     sourceUrl: "https://luma.com/00hm86ph",
     type: "meetup",
     tags: ["Road to AIE", "OpenAI"],
