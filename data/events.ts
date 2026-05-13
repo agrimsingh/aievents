@@ -264,6 +264,26 @@ export const curatedEvents: CuratedEventEntry[] = [
     },
   },
   {
+    sourceUrl: "https://luma.com/8zl24puz",
+    type: "demo-day",
+    tags: ["Road to AIE", "Zo Computer", "AI Tinkerers", "future internet"],
+    scrapeFallback: {
+      title: "Future Internet Demos with Zo Computer & AI Tinkerers",
+      description:
+        "Come for a curated evening of talks and demos about the future of the Internet, brought to you by AI Tinkerers and Zo Computer.",
+      date: "2026-05-17T18:00:00.000+08:00",
+      endDate: "2026-05-17T20:00:00.000+08:00",
+      location: {
+        name: "Central Area",
+        address: "Register to See Address",
+        city: "Singapore",
+        isVirtual: false,
+      },
+      coverImage:
+        "https://images.lumacdn.com/cdn-cgi/image/format=auto,fit=cover,dpr=1,anim=false,background=white,quality=75,width=1920,height=1920/uploads/sp/ff29658a-dcd4-4cdc-8344-428246932875.jpg",
+    },
+  },
+  {
     sourceUrl: "https://luma.com/w1gfp1g3",
     type: "meetup",
     tags: ["Road to AIE", "Adaption", "Lorong AI", "AI Singapore"],
