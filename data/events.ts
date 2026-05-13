@@ -76,6 +76,11 @@ export const curatedEvents: CuratedEventEntry[] = [
     },
   },
   {
+    sourceUrl: "https://luma.com/3tr7g20i",
+    type: "meetup",
+    tags: ["iOS Dev Scout", "AI builders", "on-device AI", "Swift"],
+  },
+  {
     sourceUrl:
       "https://www.meetup.com/machine-learning-singapore/events/314629150/",
     type: "meetup",
