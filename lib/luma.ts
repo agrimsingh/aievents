@@ -144,6 +144,7 @@ function recordFromScrapeFallback(entry: CuratedEventEntry): EventRecord {
     coverImage: fb.coverImage,
     sourceUrl,
     tags,
+    hosts: fb.hosts,
   };
 }
 

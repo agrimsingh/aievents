@@ -5,7 +5,7 @@ export type CuratedEventFallback = Pick<
   EventRecord,
   "title" | "description" | "date" | "location"
 > &
-  Pick<Partial<EventRecord>, "endDate" | "coverImage">;
+  Pick<Partial<EventRecord>, "endDate" | "coverImage" | "hosts">;
 
 /** Curated event page URLs (Luma or other hosts with Event JSON-LD). */
 export type CuratedEventEntry = {
@@ -301,6 +301,45 @@ export const curatedEvents: CuratedEventEntry[] = [
       },
       coverImage:
         "https://og.luma.com/cdn-cgi/image/format=auto,fit=cover,dpr=1,anim=false,background=white,quality=75,width=800,height=420/event?calendar_avatar=https%3A%2F%2Fimages.lumacdn.com%2Fcalendars%2Fhv%2Fc3823d79-a718-463d-b7f7-a3afa2bf9822.png&calendar_name=adaption&color0=%23431612&color1=%23dadada&color2=%2345467f&color3=%23c0c0a1&img=https%3A%2F%2Fimages.lumacdn.com%2Fevent-covers%2Fs9%2Fe20b199a-82b9-4802-8793-8836336245dc.png&name=Adaption%20X%20Singapore%2C%20Hosted%20by%20Adaption%2C%20Lorong%20AI%20%26%20AI%20Singapore&palette_neutral=%23431612%3A63.04%2C%23dadada%3A2.56&palette_vibrant=%2345467f%3A1.39%2C%23c0c0a1%3A0.89",
+    },
+  },
+  {
+    sourceUrl: "https://luma.com/1ueqjml8",
+    type: "workshop",
+    tags: ["Mamba Partners", "Fuzzy AI", "GTM agents", "AI sales"],
+    scrapeFallback: {
+      title: "Build Your GTM AI Agent in 90 Minutes",
+      description:
+        "A hands-on workshop where attendees build a working GTM AI agent for use cases like brand building, audience engagement, account research, lead qualification, personalised outreach, or follow-up. No coding experience required; bring a laptop and a real GTM problem.",
+      date: "2026-05-19T03:00:00.000Z",
+      endDate: "2026-05-19T05:00:00.000Z",
+      location: {
+        name: "Chinatown",
+        address: "Register to See Address",
+        city: "Singapore",
+        isVirtual: false,
+      },
+      coverImage:
+        "https://images.lumacdn.com/uploads/y9/5efd3566-f448-4366-9dc1-e41863291138.jpg",
+      hosts: [
+        {
+          name: "Mamba Partners",
+          avatar:
+            "https://images.lumacdn.com/avatars/b4/448f270d-59e8-408e-88c5-4f6d75039ccd.png",
+          url: "https://www.mambapartners.com",
+        },
+        {
+          name: "Serena Lam (Fuzzy AI)",
+          avatar:
+            "https://images.lumacdn.com/avatars/of/23bbf569-112d-4b72-a340-f2df5913bab2",
+          url: "https://www.linkedin.com/in/serenalamau",
+        },
+        {
+          name: "Finnley Lee",
+          avatar: "https://cdn.lu.ma/avatars-default/avatar_18.png",
+          url: "https://www.linkedin.com/in/finnleyleehuiyu",
+        },
+      ],
     },
   },
   {
