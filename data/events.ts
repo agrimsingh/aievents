@@ -17,6 +17,16 @@ export type CuratedEventEntry = {
 
 export const curatedEvents: CuratedEventEntry[] = [
   {
+    sourceUrl: "https://luma.com/8ymekijo",
+    type: "conference",
+    tags: ["65labs", "model routing", "AI costs", "AI models"],
+  },
+  {
+    sourceUrl: "https://luma.com/spokuif9",
+    type: "meetup",
+    tags: ["Codex", "SGInnovate", "AI-assisted development"],
+  },
+  {
     sourceUrl: "https://luma.com/zprbhtzy",
     type: "hackathon",
     tags: ["Codex", "GPT 5.5", "GPT Image 2"],
