@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# This project has no databases, tunnels, or other persistent services to repair.
+echo "No orb resume actions required."

@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_root"
+
+run_step() {
+  local label="$1"
+  shift
+  local started=$SECONDS
+  printf '==> %s\n' "$label"
+  "$@"
+  printf '    completed in %ss\n' "$((SECONDS - started))"
+}
+
+command -v node >/dev/null || {
+  echo "Node.js is required but was not found in PATH." >&2
+  exit 1
+}
+command -v corepack >/dev/null || {
+  echo "Corepack is required but was not found in PATH." >&2
+  exit 1
+}
+
+run_step "Activating the repository's pinned pnpm version" \
+  corepack prepare pnpm@9.15.0 --activate
+run_step "Enabling the pnpm Corepack shim" corepack enable pnpm
+run_step "Installing dependencies from pnpm-lock.yaml" \
+  pnpm install --frozen-lockfile
+
+printf 'Orb setup complete (Node %s, pnpm %s).\n' \
+  "$(node --version)" "$(pnpm --version)"
