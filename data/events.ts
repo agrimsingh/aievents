@@ -131,6 +131,34 @@ export const curatedEvents: CuratedEventEntry[] = [
     },
   },
   {
+    sourceUrl: "https://luma.com/ccsingapore",
+    type: "meetup",
+    tags: ["Cerebras", "OpenAI", "Codex", "inference"],
+    scrapeFallback: {
+      title: "Cafe Compute Meetup: Singapore",
+      description:
+        "Cerebras meetup hosted with OpenAI. Bring a laptop to code, collab, and try Cerebras inference (Codex-Spark, GLM 4.7). 7–9pm sharp; registration requires host approval. Venue shared after approval.",
+      date: "2026-08-20T19:00:00.000+08:00",
+      endDate: "2026-08-20T21:00:00.000+08:00",
+      location: {
+        name: "Singapore",
+        address: "Register to See Address",
+        city: "Singapore",
+        isVirtual: false,
+      },
+      coverImage:
+        "https://images.lumacdn.com/cdn-cgi/image/format=auto,fit=cover,dpr=1,anim=false,background=white,quality=75,width=1200,height=630/event-social/gf/02daa7a8-1fd0-457d-a9c3-d9e6a4b49de7.png",
+      hosts: [
+        {
+          name: "Cerebras",
+          avatar:
+            "https://images.lumacdn.com/calendars/s9/cbfd0e0b-1502-4b93-8cda-f5b7354981d8",
+          url: "https://luma.com/cerebras",
+        },
+      ],
+    },
+  },
+  {
     sourceUrl: "https://luma.com/srcfgry1",
     type: "hackathon",
     tags: ["Grab", "65labs", "API"],
