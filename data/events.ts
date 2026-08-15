@@ -97,6 +97,40 @@ export const curatedEvents: CuratedEventEntry[] = [
     tags: ["Road to AIE", "Google DeepMind", "Gemini"],
   },
   {
+    sourceUrl: "https://luma.com/deepmind-v4ci",
+    type: "hackathon",
+    tags: ["Google DeepMind", "Gemini", "Gemma", "Lorong AI"],
+    scrapeFallback: {
+      title: "Build with Gemini Hackathon 2026",
+      description:
+        "Full-day hackathon with Lorong AI. Three tracks: Best Use of Gemma, Best Elderly Hack, and Most Creative Gemini Hack (Gemini Flash 3.6). Cash prizes per track; registration requires host approval.",
+      date: "2026-08-22T09:00:00.000+08:00",
+      endDate: "2026-08-22T18:00:00.000+08:00",
+      location: {
+        name: "Lorong AI @ One-North",
+        address: "69 Ayer Rajah Cres., Level 3 Vidacity, Singapore 139961",
+        city: "Singapore",
+        isVirtual: false,
+      },
+      coverImage:
+        "https://images.lumacdn.com/cdn-cgi/image/format=auto,fit=cover,dpr=1,anim=false,background=white,quality=75,width=1200,height=630/event-social/zx/c2efd167-0eb7-441d-bdef-e729054a8bff.png",
+      hosts: [
+        {
+          name: "Google DeepMind",
+          avatar:
+            "https://images.lumacdn.com/calendars/ph/5ee73ff7-6554-47d8-8505-4306f1091baa.jpg",
+          url: "https://luma.com/deepmind",
+        },
+        {
+          name: "Lorong AI",
+          avatar:
+            "https://images.lumacdn.com/avatars/3b/567abf09-1b6f-446b-8b66-637b47c335e6.png",
+          url: "https://luma.com/user/lorongai",
+        },
+      ],
+    },
+  },
+  {
     sourceUrl: "https://luma.com/srcfgry1",
     type: "hackathon",
     tags: ["Grab", "65labs", "API"],
