@@ -366,7 +366,7 @@ async function writeSummary(summaryPath, addedApproved, removedUrls, context) {
   const lines = [
     "## Slack-approved event intake",
     "",
-    "This PR adds source URLs approved in the configured Slack intake channel.",
+    "This workflow run adds source URLs approved in the configured Slack intake channel.",
     "The site will hydrate their public event metadata through the existing JSON-LD pipeline.",
     "",
     ...addedApproved.flatMap(
@@ -388,7 +388,7 @@ async function writeSummary(summaryPath, addedApproved, removedUrls, context) {
     ...(removedUrls.length > 0
       ? [
           "",
-          "Removed from the pending PR because a current approval was not observed:",
+          "Removed from the generated event data because a current approval was not observed:",
           ...removedUrls.map((sourceUrl) => `- ${sourceUrl}`),
         ]
       : []),
@@ -397,7 +397,7 @@ async function writeSummary(summaryPath, addedApproved, removedUrls, context) {
     ...(context.workflowUrl ? [`Workflow run: ${context.workflowUrl}`] : []),
     "Slack user and channel identifiers are one-way audit keys; private message text is not included.",
     "",
-    "Review checklist:",
+    "Post-publish checklist:",
     "- Confirm each event is relevant to Singapore's AI community.",
     "- Confirm the source page contains usable Event JSON-LD.",
     "- Add an explicit type, tags, or scrape fallback if the source needs them.",
