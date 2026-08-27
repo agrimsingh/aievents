@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getAllEvents } from "@/lib/luma";
-import { buildHomeJsonLd } from "@/lib/json-ld";
+import { buildHomeJsonLd, serializeJsonLd } from "@/lib/json-ld";
 import { SITE_URL, siteSummary } from "@/lib/site-content";
 import { Hero } from "@/components/hero";
 import { SiteIntro } from "@/components/site-intro";
@@ -35,7 +35,7 @@ export default async function Home() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(jsonLd),
+          __html: serializeJsonLd(jsonLd),
         }}
       />
       <div className="flex min-h-full w-full min-w-0 flex-col">

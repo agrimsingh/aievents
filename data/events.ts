@@ -1,4 +1,5 @@
 import type { EventKind, EventRecord } from "@/lib/types";
+import slackApprovedEvents from "@/data/slack-events.json";
 
 /** Snapshot when server-side fetch cannot read the page (e.g. bot interstitial). */
 export type CuratedEventFallback = Pick<
@@ -15,7 +16,7 @@ export type CuratedEventEntry = {
   scrapeFallback?: CuratedEventFallback;
 };
 
-export const curatedEvents: CuratedEventEntry[] = [
+const manuallyCuratedEvents: CuratedEventEntry[] = [
   {
     sourceUrl: "https://luma.com/8ymekijo",
     type: "conference",
@@ -460,4 +461,9 @@ export const curatedEvents: CuratedEventEntry[] = [
         "https://sloppy-joe-app.imgix.net/blog_images/iney3owf5fq-jpg-H4dR.jpg?fm=jpg",
     },
   },
+];
+
+export const curatedEvents: CuratedEventEntry[] = [
+  ...slackApprovedEvents,
+  ...manuallyCuratedEvents,
 ];

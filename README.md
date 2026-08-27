@@ -21,6 +21,37 @@ Open [http://localhost:3000](http://localhost:3000).
 
 Edit [`data/events.ts`](data/events.ts): add a `{ sourceUrl, type?, tags? }` entry (Luma or any page with Event JSON-LD). Deploy or wait for the hourly revalidation.
 
+## Slack-approved event intake
+
+The optional Slack intake workflow turns approved event links into a pull request. It never pushes directly to `main`.
+
+1. An allowlisted curator posts one event URL by itself in the configured Slack channel.
+2. An allowlisted curator adds the `:white_check_mark:` reaction. Edited messages are ignored; post a fresh URL if it changes.
+3. The scheduled GitHub Action checks the channel, adds new approved URLs to [`data/slack-events.json`](data/slack-events.json), and opens or updates one review pull request.
+4. Review the event source, metadata, and site preview before merging.
+
+Only HTTPS URLs on the allowlist in [`scripts/slack-event-intake.mjs`](scripts/slack-event-intake.mjs) are accepted. The base list covers Luma, Meetup, GrowthX, and AI Tinkerers Singapore. Add unfamiliar hosts through code review rather than a repository variable, because the site fetches event URLs server-side.
+
+### One-time setup
+
+The repository owner or an administrator must:
+
+1. Create a Slack app and install it to the 65Labs workspace with these bot token scopes:
+   - `channels:history`
+   - `groups:history` if the intake channel is private
+   - `reactions:read`
+2. Invite the Slack app to the intake channel.
+3. Add the bot token as the GitHub Actions secret `SLACK_BOT_TOKEN`.
+4. Add these GitHub repository variables:
+   - `SLACK_TEAM_ID`: the immutable `T...` workspace ID
+   - `SLACK_EVENT_CHANNEL_ID`: the immutable `C...` or `G...` channel ID
+   - `SLACK_EVENT_APPROVER_IDS`: comma-separated `U...` Slack user IDs allowed to approve events
+   - `SLACK_EVENT_APPROVAL_REACTIONS` (optional): defaults to `white_check_mark`
+   - `SLACK_EVENT_LOOKBACK_DAYS` (optional): defaults to 30 and is capped at 90
+5. In GitHub Actions settings, allow workflows to create pull requests with `GITHUB_TOKEN`.
+
+The workflow runs every 10 minutes and can also be started manually. It reads only recent channel history, verifies the bot belongs to the configured workspace, ignores bots and edited messages, requires both the submitter and approver to be allowlisted curators, removes query strings and fragments, and deduplicates URLs already present in either curated event file. Approval reactions added after the configured lookback window are not discovered.
+
 ## Public API
 
 `GET /api/v1/events` returns the event feed as JSON. It is unauthenticated, CORS-readable, and cached with `s-maxage=3600`.
@@ -89,3 +120,5 @@ pnpm build
 | `pnpm build` | Production build   |
 | `pnpm start` | Start production server |
 | `pnpm lint` | ESLint             |
+| `pnpm test` | Intake unit tests |
+| `pnpm intake:slack` | Collect approved Slack event URLs |
