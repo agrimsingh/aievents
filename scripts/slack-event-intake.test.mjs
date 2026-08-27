@@ -212,7 +212,7 @@ test("filters URLs already present in either curated source", () => {
   ]);
 });
 
-test("rebuilds mutable PR state from merged data and current Slack approvals", () => {
+test("rebuilds generated state from merged data and current Slack approvals", () => {
   const approved = [
     { sourceUrl: "https://luma.com/approved", messageTs: "1" },
   ];
