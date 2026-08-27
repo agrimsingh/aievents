@@ -1,7 +1,16 @@
 import { cache } from "react";
 import { curatedEvents, type CuratedEventEntry } from "@/data/events";
 import { isLumaEventUrl } from "@/lib/event-link";
+import { isAllowedEventImageUrl } from "@/lib/event-source-url.mjs";
+import {
+  boundedText,
+  safeHttpsUrl,
+  validEventDate,
+} from "@/lib/event-record-sanitizer.mjs";
+import { fetchEventPage, readEventHtml } from "@/lib/safe-event-fetch.mjs";
 import type { EventHost, EventKind, EventRecord } from "@/lib/types";
+
+const MAX_JSON_LD_NODES = 500;
 
 type PostalAddress = {
   streetAddress?: string;
@@ -45,15 +54,17 @@ function slugFromUrl(url: string): string {
 function pickImage(image: JsonLdImage | undefined): string | undefined {
   if (!image) return undefined;
   const first = Array.isArray(image) ? image[0] : image;
-  if (typeof first === "string") return first;
+  if (typeof first === "string") {
+    return isAllowedEventImageUrl(first) ? first : undefined;
+  }
   if (first && typeof first === "object" && typeof first.url === "string") {
-    return first.url;
+    return isAllowedEventImageUrl(first.url) ? first.url : undefined;
   }
   return undefined;
 }
 
 function isVirtualMode(mode?: string): boolean {
-  if (!mode) return false;
+  if (typeof mode !== "string") return false;
   return (
     mode.includes("Online") ||
     mode.includes("online") ||
@@ -66,16 +77,19 @@ function pickHosts(organizer: SchemaEvent["organizer"]): EventHost[] {
   const organizers = Array.isArray(organizer) ? organizer : [organizer];
   const seen = new Set<string>();
   return organizers
+    .slice(0, 20)
     .map((org) => {
-      if (!org.name) return null;
-      const key = org.name.trim().toLowerCase();
+      const name = boundedText(org?.name, 120);
+      if (!name) return null;
+      const key = name.toLowerCase();
       if (seen.has(key)) return null;
       seen.add(key);
-      const avatar = pickImage(org.image ?? org.logo);
+      const avatar = pickImage(org?.image ?? org?.logo);
+      const url = safeHttpsUrl(org?.url);
       return {
-        name: org.name,
+        name,
         ...(avatar ? { avatar } : {}),
-        ...(org.url ? { url: org.url } : {}),
+        ...(url ? { url } : {}),
       };
     })
     .filter((host): host is EventHost => host !== null);
@@ -87,17 +101,20 @@ function parseAddress(
   if (!loc) {
     return { name: "Singapore", city: "Singapore" };
   }
-  const name = loc.name ?? "Venue";
+  if (typeof loc !== "object") {
+    return { name: "Venue", city: "Singapore" };
+  }
+  const name = boundedText(loc.name, 200) ?? "Venue";
   if (typeof loc.address === "string") {
     return {
       name,
-      address: loc.address,
+      address: boundedText(loc.address, 500),
       city: "Singapore",
     };
   }
   if (loc.address && typeof loc.address === "object") {
-    const street = loc.address.streetAddress;
-    const city = loc.address.addressLocality ?? "Singapore";
+    const street = boundedText(loc.address.streetAddress, 500);
+    const city = boundedText(loc.address.addressLocality, 120) ?? "Singapore";
     return {
       name,
       address: street,
@@ -182,7 +199,7 @@ function collectJsonLdNodes(data: unknown): JsonLdNode[] {
         ? item["@graph"].filter(isJsonLdNode)
         : []),
     ];
-  });
+  }).slice(0, MAX_JSON_LD_NODES);
 }
 
 function isJsonLdNode(value: unknown): value is JsonLdNode {
@@ -245,24 +262,16 @@ export const fetchCuratedEvent = cache(
   async (entry: CuratedEventEntry): Promise<EventRecord | null> => {
     const { sourceUrl, type: typeOverride, tags } = entry;
     try {
-      const res = await fetch(sourceUrl, {
-        next: { revalidate: 3600 },
-        headers: {
-          // Browser-like UA: some hosts return a bot interstitial to datacenter fetches.
-          "User-Agent":
-            "Mozilla/5.0 (compatible; AIEventsSG/1.0; +https://aievents.sg) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-          Accept:
-            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-          "Accept-Language": "en-SG,en;q=0.9",
-        },
-      });
+      const res = await fetchEventPage(sourceUrl);
       if (!res.ok) {
         console.error(`Event fetch failed ${res.status} for ${sourceUrl}`);
         return entry.scrapeFallback ? recordFromScrapeFallback(entry) : null;
       }
-      const html = await res.text();
+      const html = await readEventHtml(res);
       const ev = extractJsonLdEvent(html);
-      if (!ev?.name || !ev.startDate) {
+      const rawTitle = boundedText(ev?.name, 200);
+      const startDate = validEventDate(ev?.startDate);
+      if (!ev || !rawTitle || !startDate) {
         console.error(`No Event JSON-LD in ${sourceUrl}`);
         return entry.scrapeFallback ? recordFromScrapeFallback(entry) : null;
       }
@@ -270,15 +279,15 @@ export const fetchCuratedEvent = cache(
       const addr = parseAddress(ev.location);
       const virtual = isVirtualMode(ev.eventAttendanceMode);
       const cover = pickImage(ev.image);
-      const title = normalizeEventTitle(sourceUrl, ev.name);
+      const title = normalizeEventTitle(sourceUrl, rawTitle);
       const hosts = pickHosts(ev.organizer);
 
       return {
         slug,
         title,
-        description: ev.description ?? "",
-        date: ev.startDate,
-        endDate: ev.endDate,
+        description: boundedText(ev.description, 5_000) ?? "",
+        date: startDate,
+        endDate: validEventDate(ev.endDate),
         location: {
           name: addr.name,
           address: addr.address,

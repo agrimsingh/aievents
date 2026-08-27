@@ -113,3 +113,4 @@ export function buildHomeJsonLd(events: EventRecord[]) {
   };
 }
 
+export { serializeJsonLd } from "@/lib/json-ld-serializer.mjs";
