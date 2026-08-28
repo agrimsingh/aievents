@@ -2,7 +2,9 @@ name: Slack event intake
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    # GitHub schedules are best-effort. Stagger away from common minute
+    # boundaries and poll every five minutes as a webhook fallback.
+    - cron: "3-58/5 * * * *"
   workflow_dispatch:
 
 permissions: {}
