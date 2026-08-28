@@ -26,10 +26,12 @@ Edit [`data/events.ts`](data/events.ts): add a `{ sourceUrl, type?, tags? }` ent
 The optional Slack intake workflow publishes approved event links directly to `main`.
 
 1. An allowlisted curator posts one event URL by itself in the configured Slack channel.
-2. An allowlisted curator adds the `:white_check_mark:` reaction. Edited messages are ignored; post a fresh URL if it changes.
-3. Slack sends the signed approval event to the site, which immediately starts the GitHub intake workflow. A staggered five-minute GitHub schedule remains as a best-effort fallback.
-4. The workflow checks the channel, adds new approved URLs to [`data/slack-events.json`](data/slack-events.json), and commits the file to `main`.
-5. The site deployment begins from that commit. To unpublish an event after it is committed, remove its entry from [`data/slack-events.json`](data/slack-events.json).
+2. An allowlisted curator adds `:white_check_mark:` to publish it or `:wastebasket:` to remove it. Removal wins if both reactions are present. Edited messages are ignored; post a fresh URL if it changes.
+3. Slack sends the signed reaction event to the relay, which immediately starts the GitHub intake workflow with the exact message. A staggered five-minute GitHub schedule remains as a best-effort fallback.
+4. The workflow checks the channel, updates [`data/slack-events.json`](data/slack-events.json), and commits the file to `main`.
+5. The site deployment begins from that commit. To restore a removed event, remove `:wastebasket:` and toggle `:white_check_mark:` off and on again.
+
+Removal applies only to events managed in `data/slack-events.json`; manually curated entries in `data/events.ts` are protected.
 
 Only HTTPS URLs on the allowlist in [`scripts/slack-event-intake.mjs`](scripts/slack-event-intake.mjs) are accepted. The base list covers Luma, Meetup, GrowthX, and AI Tinkerers Singapore. Add unfamiliar hosts through code review rather than a repository variable, because the site fetches event URLs server-side.
 
@@ -42,23 +44,25 @@ The repository owner or an administrator must:
    - `groups:history` if the intake channel is private
    - `reactions:read`
 2. Invite the Slack app to the intake channel.
-3. Enable Slack Event Subscriptions with the production request URL `https://www.aievents.sg/api/slack/events`, then subscribe the bot to `reaction_added`.
+3. Enable Slack Event Subscriptions with the production request URL `https://aievents-slack-intake.vercel.app/api/slack/events`, then subscribe the bot to `reaction_added`.
 4. Add the bot token as the GitHub Actions secret `SLACK_BOT_TOKEN`.
 5. Add these GitHub repository variables:
    - `SLACK_TEAM_ID`: the immutable `T...` workspace ID
    - `SLACK_EVENT_CHANNEL_ID`: the immutable `C...` or `G...` channel ID
    - `SLACK_EVENT_APPROVER_IDS`: comma-separated `U...` Slack user IDs allowed to approve events
    - `SLACK_EVENT_APPROVAL_REACTIONS` (optional): defaults to `white_check_mark`
+   - `SLACK_EVENT_REMOVAL_REACTIONS` (optional): defaults to `wastebasket`
    - `SLACK_EVENT_LOOKBACK_DAYS` (optional): defaults to 30 and is capped at 90
 6. Add these encrypted Vercel production environment variables:
    - `SLACK_SIGNING_SECRET`: the Slack app signing secret
    - `GITHUB_WORKFLOW_TOKEN`: a credential allowed to dispatch Actions for this repository
 7. Add these Vercel production environment variables:
    - `SLACK_TEAM_ID`, `SLACK_APP_ID`, `SLACK_EVENT_CHANNEL_ID`, and `SLACK_EVENT_APPROVER_IDS`
+   - `SLACK_EVENT_REMOVAL_REACTIONS` (optional): defaults to `wastebasket`
    - `GITHUB_WORKFLOW_REPOSITORY`: `agrimsingh/aievents`
    - `GITHUB_WORKFLOW_REF`: `main`
 
-The signed Slack webhook is the primary trigger. The workflow also polls at staggered five-minute intervals as a best-effort recovery path and can be started manually. It reads only recent channel history, verifies the bot belongs to the configured workspace, ignores bots and edited messages, requires both the submitter and approver to be allowlisted curators, removes query strings and fragments, and deduplicates URLs already present in either curated event file. An approval is a production publishing action with no pull-request preview. Approval reactions added after the configured lookback window are not discovered.
+The signed Slack webhook is the primary trigger. The workflow also polls at staggered five-minute intervals as a best-effort recovery path and can be started manually. It reads recent channel history plus the exact webhook-triggering message, verifies the bot belongs to the configured workspace, ignores bots and edited messages, requires both the submitter and reacting curator to be allowlisted, removes query strings and fragments, and deduplicates URLs already present in either curated event file. Publish and removal reactions are production actions with no pull-request preview. Scheduled fallback runs can discover reactions only inside the configured lookback window.
 
 ## Public API
 

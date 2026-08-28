@@ -6,6 +6,23 @@ on:
     # boundaries and poll every five minutes as a webhook fallback.
     - cron: "3-58/5 * * * *"
   workflow_dispatch:
+    inputs:
+      slack_channel_id:
+        description: Slack channel that emitted the reaction
+        required: false
+        type: string
+      slack_message_ts:
+        description: Slack message timestamp to fetch exactly
+        required: false
+        type: string
+      slack_reaction:
+        description: Slack reaction that triggered this run
+        required: false
+        type: string
+      slack_user_id:
+        description: Slack curator who added the reaction
+        required: false
+        type: string
 
 permissions: {}
 
@@ -72,7 +89,12 @@ jobs:
           SLACK_EVENT_APPROVER_IDS: ${{ vars.SLACK_EVENT_APPROVER_IDS }}
           SLACK_EVENT_CHANNEL_ID: ${{ vars.SLACK_EVENT_CHANNEL_ID }}
           SLACK_EVENT_LOOKBACK_DAYS: ${{ vars.SLACK_EVENT_LOOKBACK_DAYS || '30' }}
+          SLACK_EVENT_REMOVAL_REACTIONS: ${{ vars.SLACK_EVENT_REMOVAL_REACTIONS || 'wastebasket' }}
           SLACK_TEAM_ID: ${{ vars.SLACK_TEAM_ID }}
+          SLACK_TRIGGER_CHANNEL_ID: ${{ inputs.slack_channel_id || '' }}
+          SLACK_TRIGGER_MESSAGE_TS: ${{ inputs.slack_message_ts || '' }}
+          SLACK_TRIGGER_REACTION: ${{ inputs.slack_reaction || '' }}
+          SLACK_TRIGGER_USER_ID: ${{ inputs.slack_user_id || '' }}
         run: node scripts/slack-event-intake.mjs
 
       - name: Encode the validated write payload

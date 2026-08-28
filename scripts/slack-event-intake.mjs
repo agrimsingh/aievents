@@ -8,6 +8,7 @@ const DEFAULT_MANUAL_EVENTS_PATH = new URL("../data/events.ts", import.meta.url)
 const MAX_AUTOMATED_EVENTS = 500;
 const MAX_HISTORY_MESSAGES = 500;
 const MAX_NEW_EVENTS_PER_RUN = 10;
+const MAX_REMOVED_EVENTS_PER_RUN = 10;
 const MAX_SLACK_EVENTS_FILE_BYTES = 100_000;
 const SLACK_REQUEST_TIMEOUT_MS = 10_000;
 const SLACK_RETRY_ATTEMPTS = 3;
@@ -81,18 +82,44 @@ export function extractSingleEventUrlMessage(
   return rawUrl ? normalizeEventUrl(rawUrl, allowedHosts) : null;
 }
 
-function approvingUsers(message, approverIds, approvalReactions) {
+function reactingUsers(message, approverIds, reactionNames) {
   const approvers = new Set(approverIds);
-  const reactionNames = new Set(approvalReactions);
+  const configuredReactions = new Set(reactionNames);
 
   return [
     ...new Set(
       (message.reactions ?? [])
-        .filter((reaction) => reactionNames.has(reaction.name))
+        .filter((reaction) => configuredReactions.has(reaction.name))
         .flatMap((reaction) => reaction.users ?? [])
         .filter((userId) => approvers.has(userId)),
     ),
   ];
+}
+
+function trustedEventMessage(message, approverIds, allowedHosts) {
+  const approvers = new Set(approverIds);
+  if (
+    !message ||
+    typeof message !== "object" ||
+    message.bot_id ||
+    message.edited ||
+    (message.subtype && message.subtype !== "thread_broadcast") ||
+    !approvers.has(message.user)
+  ) {
+    return null;
+  }
+
+  const sourceUrl = extractSingleEventUrlMessage(message.text, allowedHosts);
+  if (!sourceUrl) return null;
+
+  return {
+    sourceUrl,
+    messageTs: message.ts,
+    submittedBy: message.user,
+    contentHash: createHash("sha256")
+      .update(message.text.trim())
+      .digest("hex"),
+  };
 }
 
 export function collectApprovedEventUrls(
@@ -104,45 +131,63 @@ export function collectApprovedEventUrls(
   },
 ) {
   const approved = new Map();
-  const approvers = new Set(approverIds);
 
   for (const message of messages) {
-    if (
-      !message ||
-      typeof message !== "object" ||
-      message.bot_id ||
-      message.edited ||
-      (message.subtype && message.subtype !== "thread_broadcast") ||
-      !approvers.has(message.user)
-    ) {
-      continue;
-    }
-
-    const approvedBy = approvingUsers(
+    const eventMessage = trustedEventMessage(
       message,
       approverIds,
-      approvalReactions,
+      allowedHosts,
     );
+    if (!eventMessage) continue;
+
+    const approvedBy = reactingUsers(message, approverIds, approvalReactions);
     if (approvedBy.length === 0) continue;
 
-    const sourceUrl = extractSingleEventUrlMessage(message.text, allowedHosts);
-    if (!sourceUrl) continue;
-
-    const existing = approved.get(sourceUrl);
+    const existing = approved.get(eventMessage.sourceUrl);
     if (!existing || Number(message.ts) < Number(existing.messageTs)) {
-      approved.set(sourceUrl, {
-        sourceUrl,
-        messageTs: message.ts,
-        submittedBy: message.user,
+      approved.set(eventMessage.sourceUrl, {
+        ...eventMessage,
         approvedBy,
-        contentHash: createHash("sha256")
-          .update(message.text.trim())
-          .digest("hex"),
       });
     }
   }
 
   return [...approved.values()].sort(
+    (left, right) => Number(left.messageTs) - Number(right.messageTs),
+  );
+}
+
+export function collectRemovedEventUrls(
+  messages,
+  {
+    approverIds,
+    removalReactions = ["wastebasket"],
+    allowedHosts = DEFAULT_ALLOWED_HOSTS,
+  },
+) {
+  const removed = new Map();
+
+  for (const message of messages) {
+    const eventMessage = trustedEventMessage(
+      message,
+      approverIds,
+      allowedHosts,
+    );
+    if (!eventMessage) continue;
+
+    const removedBy = reactingUsers(message, approverIds, removalReactions);
+    if (removedBy.length === 0) continue;
+
+    const existing = removed.get(eventMessage.sourceUrl);
+    if (!existing || Number(message.ts) < Number(existing.messageTs)) {
+      removed.set(eventMessage.sourceUrl, {
+        ...eventMessage,
+        removedBy,
+      });
+    }
+  }
+
+  return [...removed.values()].sort(
     (left, right) => Number(left.messageTs) - Number(right.messageTs),
   );
 }
@@ -247,6 +292,35 @@ export async function fetchSlackMessages({
   throw new Error("Slack history exceeded the 20-page safety limit");
 }
 
+export async function fetchSlackMessage({
+  channelId,
+  messageTs,
+  token,
+  fetchImpl = fetch,
+}) {
+  if (!/^\d+\.\d+$/.test(messageTs)) {
+    throw new Error("Slack message timestamp is invalid");
+  }
+
+  const payload = await callSlack(
+    "conversations.history",
+    {
+      channel: channelId,
+      inclusive: true,
+      latest: messageTs,
+      limit: 1,
+      oldest: messageTs,
+    },
+    token,
+    fetchImpl,
+  );
+  const message = (payload.messages ?? []).find(({ ts }) => ts === messageTs);
+  if (!message) {
+    throw new Error("Slack trigger message was not found");
+  }
+  return message;
+}
+
 function sourceUrlsFromTypescript(source) {
   return [...source.matchAll(/sourceUrl:\s*["']([^"']+)["']/g)].map(
     (match) => match[1],
@@ -273,6 +347,7 @@ export function deriveAutomatedEvents({
   automatedEvents,
   baseAutomatedEvents,
   manualEventsSource,
+  removed = [],
 }) {
   const approvedAfterBase = findNewApprovedUrls(
     approved,
@@ -280,14 +355,16 @@ export function deriveAutomatedEvents({
     baseAutomatedEvents,
   );
   const currentUrls = new Set(automatedEvents.map(({ sourceUrl }) => sourceUrl));
+  const removalUrls = new Set(removed.map(({ sourceUrl }) => sourceUrl));
   const nextEvents = [
     ...baseAutomatedEvents,
     ...approvedAfterBase.map(({ sourceUrl }) => ({ sourceUrl })),
-  ];
+  ].filter(({ sourceUrl }) => !removalUrls.has(sourceUrl));
   validateAutomatedEvents(nextEvents);
   const nextUrls = new Set(nextEvents.map(({ sourceUrl }) => sourceUrl));
   const newApproved = approvedAfterBase.filter(
-    ({ sourceUrl }) => !currentUrls.has(sourceUrl),
+    ({ sourceUrl }) =>
+      !currentUrls.has(sourceUrl) && !removalUrls.has(sourceUrl),
   );
   const removedUrls = automatedEvents
     .map(({ sourceUrl }) => sourceUrl)
@@ -388,7 +465,7 @@ async function writeSummary(summaryPath, addedApproved, removedUrls, context) {
     ...(removedUrls.length > 0
       ? [
           "",
-          "Removed from the generated event data because a current approval was not observed:",
+          `Removed from the generated event data after an authorized ${context.removalReactions.map((reaction) => `\`:${reaction}:\``).join(" or ")} reaction:`,
           ...removedUrls.map((sourceUrl) => `- ${sourceUrl}`),
         ]
       : []),
@@ -429,6 +506,15 @@ export async function main() {
   const approvalReactions = parseList(
     process.env.SLACK_EVENT_APPROVAL_REACTIONS ?? "white_check_mark",
   );
+  const removalReactions = parseList(
+    process.env.SLACK_EVENT_REMOVAL_REACTIONS ?? "wastebasket",
+  );
+  const trigger = {
+    channelId: process.env.SLACK_TRIGGER_CHANNEL_ID?.trim() ?? "",
+    messageTs: process.env.SLACK_TRIGGER_MESSAGE_TS?.trim() ?? "",
+    reaction: process.env.SLACK_TRIGGER_REACTION?.trim() ?? "",
+    userId: process.env.SLACK_TRIGGER_USER_ID?.trim() ?? "",
+  };
   const lookbackDays = parsePositiveInteger(
     process.env.SLACK_EVENT_LOOKBACK_DAYS,
     30,
@@ -453,16 +539,49 @@ export async function main() {
   if (approvalReactions.length === 0) {
     throw new Error("At least one approval reaction is required");
   }
+  if (removalReactions.length === 0) {
+    throw new Error("At least one removal reaction is required");
+  }
+  if (approvalReactions.some((reaction) => removalReactions.includes(reaction))) {
+    throw new Error("Approval and removal reactions must be different");
+  }
+
+  const triggerValues = Object.values(trigger);
+  if (triggerValues.some(Boolean) && !triggerValues.every(Boolean)) {
+    throw new Error("Slack trigger context must provide channel, message, reaction, and user");
+  }
+  if (trigger.messageTs) {
+    if (trigger.channelId !== channelId) {
+      throw new Error("Slack trigger channel does not match the configured channel");
+    }
+    if (!approverIds.includes(trigger.userId)) {
+      throw new Error("Slack trigger user is not an allowlisted curator");
+    }
+    if (![...approvalReactions, ...removalReactions].includes(trigger.reaction)) {
+      throw new Error("Slack trigger reaction is not configured");
+    }
+    if (!/^\d+\.\d+$/.test(trigger.messageTs)) {
+      throw new Error("Slack trigger message timestamp is invalid");
+    }
+  }
 
   const oldest = String(Math.floor(Date.now() / 1000) - lookbackDays * 86_400);
   await verifySlackWorkspace({ expectedTeamId: teamId, token });
   const [
     messages,
+    triggerMessage,
     manualEventsSource,
     automatedEventsSource,
     baseAutomatedEventsSource,
   ] = await Promise.all([
     fetchSlackMessages({ channelId, token, oldest }),
+    trigger.messageTs
+      ? fetchSlackMessage({
+          channelId,
+          messageTs: trigger.messageTs,
+          token,
+        })
+      : Promise.resolve(null),
     readFile(DEFAULT_MANUAL_EVENTS_PATH, "utf8"),
     readFile(DEFAULT_DATA_PATH, "utf8"),
     baseDataPath
@@ -480,10 +599,17 @@ export async function main() {
   const baseAutomatedEvents = validateAutomatedEvents(
     JSON.parse(baseAutomatedEventsSource),
   );
+  const observedMessages = triggerMessage
+    ? [triggerMessage, ...messages.filter(({ ts }) => ts !== triggerMessage.ts)]
+    : messages;
 
-  const approved = collectApprovedEventUrls(messages, {
+  const approved = collectApprovedEventUrls(observedMessages, {
     approverIds,
     approvalReactions,
+  });
+  const removed = collectRemovedEventUrls(observedMessages, {
+    approverIds,
+    removalReactions,
   });
   const { newApproved, nextEvents, removedUrls, stateChanged } =
     deriveAutomatedEvents({
@@ -491,11 +617,17 @@ export async function main() {
       automatedEvents,
       baseAutomatedEvents,
       manualEventsSource,
+      removed,
     });
 
   if (newApproved.length > MAX_NEW_EVENTS_PER_RUN) {
     throw new Error(
       `Refusing to add more than ${MAX_NEW_EVENTS_PER_RUN} events in one run`,
+    );
+  }
+  if (removedUrls.length > MAX_REMOVED_EVENTS_PER_RUN) {
+    throw new Error(
+      `Refusing to remove more than ${MAX_REMOVED_EVENTS_PER_RUN} events in one run`,
     );
   }
   const changeCount = stateChanged
@@ -521,6 +653,7 @@ export async function main() {
     approvalReactions,
     channelId,
     observedAt,
+    removalReactions,
     teamId,
     workflowUrl,
   });
@@ -532,6 +665,7 @@ export async function main() {
         changeCount,
         newUrlCount: newApproved.length,
         newUrls: newApproved.map(({ sourceUrl }) => sourceUrl),
+        removalDecisionCount: removed.length,
         removedUrls,
       },
       null,

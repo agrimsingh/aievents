@@ -16,6 +16,7 @@ const BASE_ENVIRONMENT = {
   SLACK_APP_ID: "A0BT435HL3B",
   SLACK_EVENT_APPROVER_IDS: "U0ADS49R3EC,U0ACVP9PPK8,U0BS49B3BGE",
   SLACK_EVENT_CHANNEL_ID: "C0BSM0S282Y",
+  SLACK_EVENT_REMOVAL_REACTIONS: "wastebasket",
   SLACK_SIGNING_SECRET: SIGNING_SECRET,
   SLACK_TEAM_ID: "T0ACRD76KMH",
 };
@@ -128,10 +129,35 @@ test("dispatches the intake workflow for an allowlisted approval reaction", asyn
     calls[0].url,
     "https://api.github.com/repos/agrimsingh/aievents/actions/workflows/slack-event-intake.yml/dispatches",
   );
-  assert.deepEqual(JSON.parse(calls[0].init.body), { ref: "main" });
+  assert.deepEqual(JSON.parse(calls[0].init.body), {
+    inputs: {
+      slack_channel_id: "C0BSM0S282Y",
+      slack_message_ts: "1787887618.815729",
+      slack_reaction: "white_check_mark",
+      slack_user_id: "U0ADS49R3EC",
+    },
+    ref: "main",
+  });
   assert.equal(
     calls[0].init.headers.Authorization,
     "Bearer test-github-token",
+  );
+});
+
+test("dispatches the intake workflow for an allowlisted removal reaction", async () => {
+  const calls = [];
+  const result = await handleSlackIntakeWebhook({
+    ...signedRequest(reactionPayload({ reaction: "wastebasket" })),
+    fetchImpl: async (url, init) => {
+      calls.push({ init, url });
+      return new Response(null, { status: 204 });
+    },
+  });
+
+  assert.equal(result.status, 202);
+  assert.equal(
+    JSON.parse(calls[0].init.body).inputs.slack_reaction,
+    "wastebasket",
   );
 });
 
@@ -139,6 +165,13 @@ test("ignores unrelated reactions, channels, and users without dispatching", asy
   for (const event of [
     { reaction: "eyes" },
     { item: { channel: "COTHER", ts: "1", type: "message" } },
+    {
+      item: {
+        channel: "C0BSM0S282Y",
+        ts: "not-a-message-ts",
+        type: "message",
+      },
+    },
     { user: "UUNTRUSTED" },
   ]) {
     let called = false;

@@ -4,9 +4,11 @@ import test from "node:test";
 
 import {
   collectApprovedEventUrls,
+  collectRemovedEventUrls,
   deriveAutomatedEvents,
   extractEventUrls,
   extractSingleEventUrlMessage,
+  fetchSlackMessage,
   fetchSlackMessages,
   findNewApprovedUrls,
   normalizeEventUrl,
@@ -174,6 +176,54 @@ test("requires a trusted submitter and exactly one approved event URL", () => {
   );
 });
 
+test("requires an allowlisted curator's removal reaction on a trusted message", () => {
+  const removal = [
+    { name: "wastebasket", users: ["U_APPROVER"], count: 1 },
+  ];
+  const messages = [
+    {
+      ts: "100.1",
+      user: "U_APPROVER",
+      text: "https://luma.com/remove-me",
+      reactions: removal,
+    },
+    {
+      ts: "101.1",
+      user: "U_UNTRUSTED",
+      text: "https://luma.com/untrusted-submitter",
+      reactions: removal,
+    },
+    {
+      ts: "102.1",
+      user: "U_APPROVER",
+      text: "https://luma.com/untrusted-remover",
+      reactions: [
+        { name: "wastebasket", users: ["U_OTHER"], count: 1 },
+      ],
+    },
+    {
+      ts: "103.1",
+      user: "U_APPROVER",
+      text: "https://luma.com/edited",
+      edited: { user: "U_APPROVER", ts: "103.2" },
+      reactions: removal,
+    },
+  ];
+
+  assert.deepEqual(
+    collectRemovedEventUrls(messages, { approverIds: ["U_APPROVER"] }),
+    [
+      {
+        sourceUrl: "https://luma.com/remove-me",
+        messageTs: "100.1",
+        submittedBy: "U_APPROVER",
+        removedBy: ["U_APPROVER"],
+        contentHash: contentHash("https://luma.com/remove-me"),
+      },
+    ],
+  );
+});
+
 test("accepts only canonical sourceUrl-only automated entries", () => {
   assert.deepEqual(
     validateAutomatedEvents([{ sourceUrl: "https://luma.com/approved" }]),
@@ -242,6 +292,24 @@ test("rebuilds generated state from merged data and current Slack approvals", ()
   );
 });
 
+test("an authorized removal wins when approval and removal are both present", () => {
+  assert.deepEqual(
+    deriveAutomatedEvents({
+      approved: [{ sourceUrl: "https://luma.com/event", messageTs: "1" }],
+      removed: [{ sourceUrl: "https://luma.com/event", messageTs: "1" }],
+      automatedEvents: [{ sourceUrl: "https://luma.com/event" }],
+      baseAutomatedEvents: [{ sourceUrl: "https://luma.com/event" }],
+      manualEventsSource: "export const events = [];",
+    }),
+    {
+      newApproved: [],
+      nextEvents: [],
+      removedUrls: ["https://luma.com/event"],
+      stateChanged: true,
+    },
+  );
+});
+
 test("paginates Slack history and stops at the final cursor", async () => {
   const requestedCursors = [];
   const fetchImpl = async (url) => {
@@ -269,6 +337,43 @@ test("paginates Slack history and stops at the final cursor", async () => {
 
   assert.deepEqual(requestedCursors, ["", "next"]);
   assert.deepEqual(messages, [{ ts: "2" }, { ts: "1" }]);
+});
+
+test("fetches the exact Slack trigger message outside the lookback window", async () => {
+  const fetchImpl = async (url) => {
+    assert.equal(url.searchParams.get("channel"), "C_CHANNEL");
+    assert.equal(url.searchParams.get("oldest"), "100.123");
+    assert.equal(url.searchParams.get("latest"), "100.123");
+    assert.equal(url.searchParams.get("inclusive"), "true");
+    assert.equal(url.searchParams.get("limit"), "1");
+    return {
+      ok: true,
+      status: 200,
+      headers: { get: () => null },
+      async json() {
+        return { ok: true, messages: [{ ts: "100.123", text: "event" }] };
+      },
+    };
+  };
+
+  assert.deepEqual(
+    await fetchSlackMessage({
+      channelId: "C_CHANNEL",
+      messageTs: "100.123",
+      token: "xoxb-test",
+      fetchImpl,
+    }),
+    { ts: "100.123", text: "event" },
+  );
+  await assert.rejects(
+    fetchSlackMessage({
+      channelId: "C_CHANNEL",
+      messageTs: "invalid",
+      token: "xoxb-test",
+      fetchImpl,
+    }),
+    /timestamp is invalid/,
+  );
 });
 
 test("retries a transient Slack rate limit", async () => {
