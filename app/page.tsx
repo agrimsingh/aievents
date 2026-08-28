@@ -4,7 +4,6 @@ import { buildHomeJsonLd, serializeJsonLd } from "@/lib/json-ld";
 import { SITE_URL, siteSummary } from "@/lib/site-content";
 import { Hero } from "@/components/hero";
 import { SiteIntro } from "@/components/site-intro";
-import { SiteFaq } from "@/components/site-faq";
 import { EventFeed } from "@/components/event-feed";
 import { Footer } from "@/components/footer";
 
@@ -46,7 +45,6 @@ export default async function Home() {
         >
           <SiteIntro />
           <EventFeed events={events} />
-          <SiteFaq />
         </main>
         <Footer />
       </div>
