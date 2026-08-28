@@ -3,13 +3,11 @@ import {
   ORGANIZATION_NAME,
   ORGANIZATION_URL,
   SITE_URL,
-  faqItems,
   siteSummary,
 } from "@/lib/site-content";
 
 const ORG_ID = `${ORGANIZATION_URL}#organization`;
 const SITE_ID = `${SITE_URL}/#website`;
-const FAQ_ID = `${SITE_URL}/#faq`;
 const LIST_ID = `${SITE_URL}/#eventlist`;
 
 function eventToJsonLd(e: EventRecord) {
@@ -88,26 +86,12 @@ export function buildHomeJsonLd(events: EventRecord[]) {
     })),
   };
 
-  const faqPage = {
-    "@type": "FAQPage" as const,
-    "@id": FAQ_ID,
-    mainEntity: faqItems.map((item) => ({
-      "@type": "Question" as const,
-      name: item.question,
-      acceptedAnswer: {
-        "@type": "Answer" as const,
-        text: item.answer,
-      },
-    })),
-  };
-
   return {
     "@context": "https://schema.org",
     "@graph": [
       organization,
       website,
       itemList,
-      faqPage,
       ...events.map(eventToJsonLd),
     ],
   };
